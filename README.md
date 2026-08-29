@@ -21,7 +21,7 @@ HYROX未経験者向けの完走診断Webアプリ。8項目の入力から、�
 
 | 場所 | 定数 | 内容 |
 |---|---|---|
-| `index.html` | `PAYMENT_LINK` | Stripe Payment Link のURL |
+| `index.html` | `PAYMENT_LINK` | **テストリンク設定済み。** 審査通過後に本番リンク（`test_` なしのURL）へ差し替える |
 | `index.html` | `GA4_ID` | GA4 測定ID（`G-` から始まる） |
 | `index.html` | `SITE_URL` / OGPの`og:url`・`og:image` | 独自ドメイン確定後に差し替え |
 

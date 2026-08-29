@@ -906,10 +906,13 @@ function track(name,params){
 }
 
 /* ============ 決済（Stripe Payment Link） ============ */
-/* 本番URLが決まったら、この1行だけ差し替える。
-   商品：HYROX完走プログラム / 月額 ¥980 / サブスクリプション
-   決済後のリダイレクト先：https://<ドメイン>/?paid=1               */
-const PAYMENT_LINK = "";
+/* 商品：HYROX完走プログラム / 月額 ¥980 / サブスクリプション
+   決済後のリダイレクト先：https://zono062.github.io/hyrox-shindan/?paid=1
+
+   ⚠ 現在はテスト（サンドボックス）のリンク。実際の入金は発生しない。
+   Stripeのアカウント審査が通ったら、本番モードで同じ商品のリンクを作り、
+   この1行を buy.stripe.com/xxxx（test_ が付かないURL）に差し替える。 */
+const PAYMENT_LINK = "https://buy.stripe.com/test_7sY7sL4pE32t5pA12geEo00";
 
 /* 決済からの復帰：?paid=1 を検出してフラグを立て、クエリを消す */
 (function(){
