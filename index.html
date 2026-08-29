@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ROXX — HYROX完走診断</title>
-<meta name="description" content="8つの質問で、予測完走タイム・本番で止まる箇所・必要な準備週数が出る。HYROX未経験者のための完走診断。">
+<title>ROXX — HYROX完走プログラム</title>
+<meta name="description" content="8つの質問で、予測完走タイム・本番で止まる箇所・必要な準備週数が出る。HYROX未経験者のための完走プログラム。">
 <link rel="canonical" href="https://zono062.github.io/hyrox-shindan/">
 
 <!-- PWA -->
@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="HYROX診断">
+<meta name="apple-mobile-web-app-title" content="ROXX">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
@@ -283,6 +283,15 @@ body{
 .price{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
 .price b{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:40px}
 .price span{font-size:12px;color:var(--mute)}
+.photorow{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  border:1px solid var(--rule);padding:11px 14px;margin-top:9px;
+}
+.photorow span{font-size:12px;color:var(--mute)}
+.photorow button{
+  background:none;border:none;font-size:12px;font-weight:700;color:var(--ink);
+  text-decoration:underline;cursor:pointer;font-family:"Noto Sans JP",sans-serif;
+}
 .ghost{
   width:100%;margin-top:9px;background:none;border:1px solid var(--rule);
   padding:15px;font-size:13px;cursor:pointer;font-family:"Noto Sans JP",sans-serif;
@@ -310,7 +319,7 @@ body{
 <!-- INTRO -->
 <section class="screen on" id="s-intro">
   <div class="hero">
-    <div class="mark">ROXX / 完走診断</div>
+    <div class="mark">ROXX / 完走プログラム</div>
     <h1>出られるかどうかを、<br>先に確かめる。</h1>
     <p>8つの質問に答えると、あなたの予測完走タイムと、本番で止まる箇所、そして間に合うかどうかが出ます。所要30秒。</p>
     <div class="spec">
@@ -326,7 +335,7 @@ body{
 <section class="screen" id="s-q">
   <div class="qtop">
     <div class="eyebrow" id="qidx">Q1 / 8</div>
-    <div class="eyebrow">完走診断</div>
+    <div class="eyebrow">完走プログラム</div>
   </div>
   <div class="bar"><i id="qbar" style="width:12.5%"></i></div>
   <div class="q" id="qtitle"></div>
@@ -387,6 +396,7 @@ body{
   <div class="cta">
     <div class="price" id="ctaPrice"><b class="num">¥980</b><span>／月・いつでも解約</span></div>
     <button class="btn" id="ctaBtn" onclick="checkout()">段階1から始める</button>
+    <div class="photorow" id="photoState"></div>
     <button class="ghost" onclick="share()">結果を画像でシェアする</button>
     <p class="ctalegal">月額980円・自動更新／いつでも解約できます。お申し込み前に<a href="./legal/terms.html">利用規約</a>と<a href="./legal/tokushoho.html">特定商取引法に基づく表記</a>をご確認ください。</p>
     <p class="disc">予測タイムは身長・体重・年齢・現在の走力から算出した参考値です。トレーニングおよび栄養に関する内容は一般的な情報であり、個別の医学的・栄養指導ではありません。</p>
@@ -683,6 +693,7 @@ function renderResult(){
 
   renderWeek();
   watchWeekScroll();
+  paintPhotoState();
 }
 
 /* 第1週セクションが画面に入ったら1度だけ発火 */
@@ -1149,6 +1160,39 @@ const SHARE_HOST=SITE_URL.replace(/^https?:\/\//,"").replace(/\/$/,"");
 /* ============ シェアカード ============
    テキストではなく画像を吐く。文字列のシェアはSNSに貼れないため。
    週締め後は「予測タイムが動いた差分」を主役にする。動いた数字だけが話題になる。 */
+/* 背景に敷く写真（任意）。端末内で合成するだけで、どこにも送信しない */
+let SHOT=null;
+function pickPhoto(){
+  const inp=document.createElement("input");
+  inp.type="file"; inp.accept="image/*";
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0];
+    if(!f) return;
+    if(!/^image\//.test(f.type)){ alert("画像ファイルを選んでください"); return }
+    if(f.size>20*1024*1024){ alert("画像が大きすぎます（20MBまで）"); return }
+    const url=URL.createObjectURL(f);
+    const img=new Image();
+    img.onload=()=>{ SHOT=img; paintPhotoState(); URL.revokeObjectURL(url) };
+    img.onerror=()=>{ alert("この画像は読み込めませんでした"); URL.revokeObjectURL(url) };
+    img.src=url;
+  };
+  inp.click();
+}
+function clearPhoto(){ SHOT=null; paintPhotoState() }
+function paintPhotoState(){
+  const el=$("photoState"); if(!el) return;
+  el.innerHTML = SHOT
+    ? '<span>写真を背景に使います</span><button onclick="clearPhoto()">外す</button>'
+    : '<span>カードは黒背景です</span><button onclick="pickPhoto()">写真を選ぶ</button>';
+}
+
+/* 短辺に合わせて中央でトリミング（カバー配置） */
+function drawCover(x,img,W,H){
+  const r=Math.max(W/img.width,H/img.height);
+  const w=img.width*r,h=img.height*r;
+  x.drawImage(img,(W-w)/2,(H-h)/2,w,h);
+}
+
 async function ensureFonts(){
   if(!document.fonts||!document.fonts.load) return;
   await Promise.all([
@@ -1180,10 +1224,22 @@ async function buildShareCard(before){
   const x=c.getContext("2d");
   x.fillStyle="#0B0B0B"; x.fillRect(0,0,W,H);
 
+  if(SHOT){
+    // 写真を敷き、文字が読めるように上下から黒を重ねる
+    drawCover(x,SHOT,W,H);
+    const g=x.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,"rgba(11,11,11,.90)");
+    g.addColorStop(.40,"rgba(11,11,11,.34)");
+    g.addColorStop(.60,"rgba(11,11,11,.34)");
+    g.addColorStop(.78,"rgba(11,11,11,.88)");
+    g.addColorStop(1,"rgba(11,11,11,.96)");
+    x.fillStyle=g; x.fillRect(0,0,W,H);
+  }
+
   x.textAlign="left"; x.textBaseline="top";
   x.fillStyle="#FFFFFF";
   x.font='700 30px "Barlow Condensed", sans-serif'; x.letterSpacing="10px";
-  x.fillText("ROXX  /  完走診断", PAD, PAD);
+  x.fillText("ROXX  /  完走プログラム", PAD, PAD);
   x.strokeStyle="#2C2C2C"; x.lineWidth=2;
   x.beginPath(); x.moveTo(PAD,PAD+58); x.lineTo(W-PAD,PAD+58); x.stroke();
 
@@ -1256,7 +1312,7 @@ async function buildShareCard(before){
 }
 
 function shareText(before){
-  const l=["ROXX 完走診断"];
+  const l=["ROXX 完走プログラム"];
   if(before&&before>R.total) l.push("予測タイム "+hms(before)+" → "+hms(R.total));
   else l.push("予測タイム "+hms(R.total));
   l.push("必要な準備 "+R.need+"週");

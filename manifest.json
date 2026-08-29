@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "HYROX完走診断",
-  "short_name": "HYROX診断",
+  "name": "ROXX — HYROX完走プログラム",
+  "short_name": "ROXX",
   "description": "8つの質問で、予測完走タイム・本番で止まる箇所・必要な準備週数が出る。",
   "start_url": "./",
   "scope": "./",
@@ -9,13 +9,37 @@
   "orientation": "portrait",
   "lang": "ja",
   "dir": "ltr",
-  "categories": ["health", "fitness", "sports"],
+  "categories": [
+    "health",
+    "fitness",
+    "sports"
+  ],
   "background_color": "#0B0B0B",
   "theme_color": "#0B0B0B",
   "icons": [
-    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
-    {"src":"./icon-maskable-192.png","sizes":"192x192","type":"image/png","purpose":"maskable"},
-    {"src":"./icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
