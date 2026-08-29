@@ -887,34 +887,22 @@ const Store={
 /* 保存キー: hx_answers / hx_result / hx_log / hx_week / hx_paid */
 function saveResult(){ Store.set("result",{total:R.total,need:R.need,over:R.over,closed}) }
 
-/* ============ 計測（GA4 / Meta Pixel） ============ */
-/* 測定IDが決まったらこの2行を埋める。空のままでも track() は安全に何もしない */
+/* ============ 計測（GA4） ============ */
+/* 測定IDが決まったらこの1行を埋める。空のままでも track() は安全に何もしない */
 const GA4_ID = "";           // 例: G-XXXXXXXXXX
-const META_PIXEL_ID = "";    // 例: 1234567890
 
 (function loadAnalytics(){
-  if(GA4_ID){
-    window.dataLayer=window.dataLayer||[];
-    window.gtag=function(){dataLayer.push(arguments)};
-    gtag("js",new Date()); gtag("config",GA4_ID);
-    const g=document.createElement("script");
-    g.async=true; g.src="https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(GA4_ID);
-    document.head.appendChild(g);
-  }
-  if(META_PIXEL_ID){
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-    n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-    (window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
-    fbq("init",META_PIXEL_ID); fbq("track","PageView");
-  }
+  if(!GA4_ID) return;
+  window.dataLayer=window.dataLayer||[];
+  window.gtag=function(){dataLayer.push(arguments)};
+  gtag("js",new Date()); gtag("config",GA4_ID);
+  const g=document.createElement("script");
+  g.async=true; g.src="https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(GA4_ID);
+  document.head.appendChild(g);
 })();
 
 function track(name,params){
-  const p=params||{};
-  try{ if(window.gtag) gtag("event",name,p) }catch(e){}
-  try{ if(window.fbq) fbq("trackCustom",name,p) }catch(e){}
+  try{ if(window.gtag) gtag("event",name,params||{}) }catch(e){}
 }
 
 /* ============ 決済（Stripe Payment Link） ============ */

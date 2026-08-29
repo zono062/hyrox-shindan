@@ -17,18 +17,16 @@ HYROX未経験者向けの完走診断Webアプリ。8項目の入力から、�
 
 ## 公開前に埋める値
 
-`index.html` 内の以下の定数と、`legal/tokushoho.html` の〔 〕部分。
+`index.html` 内の以下の定数。特商法表記の事業者情報は記入済み。
 
 | 場所 | 定数 | 内容 |
 |---|---|---|
 | `index.html` | `PAYMENT_LINK` | Stripe Payment Link のURL |
 | `index.html` | `GA4_ID` | GA4 測定ID（`G-` から始まる） |
-| `index.html` | `META_PIXEL_ID` | Meta Pixel ID |
 | `index.html` | `SITE_URL` / OGPの`og:url`・`og:image` | 独自ドメイン確定後に差し替え |
-| `legal/tokushoho.html` | 〔 〕内すべて | 事業者名・所在地・連絡先など |
 
-`PAYMENT_LINK` / `GA4_ID` / `META_PIXEL_ID` は空でも動作する（決済ボタンは
-「準備中」表示、計測は無効）。
+`PAYMENT_LINK` / `GA4_ID` は空でも動作する（決済ボタンは「準備中」表示、
+計測は無効）。
 
 ## ローカル確認
 
