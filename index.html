@@ -273,6 +273,12 @@ body{
 .sum .delta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:#fff;margin-bottom:20px}
 .sum .note{font-size:12.5px;line-height:1.7;color:#C9C9C5;border-top:1px solid #2C2C2C;padding-top:16px}
 .sum .note b{color:#fff}
+.sumshare{
+  width:100%;margin-top:18px;background:none;border:1px solid #4A4A46;color:#fff;
+  padding:14px;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:"Noto Sans JP",sans-serif;
+}
+.sumshare:active{background:#fff;color:var(--ink)}
 .cta{margin-top:44px;border-top:2px solid var(--ink);padding-top:22px}
 .price{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
 .price b{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:40px}
@@ -381,7 +387,7 @@ body{
   <div class="cta">
     <div class="price" id="ctaPrice"><b class="num">¥980</b><span>／月・いつでも解約</span></div>
     <button class="btn" id="ctaBtn" onclick="checkout()">段階1から始める</button>
-    <button class="ghost" onclick="share()">結果をシェアする</button>
+    <button class="ghost" onclick="share()">結果を画像でシェアする</button>
     <p class="ctalegal">月額980円・自動更新／いつでも解約できます。お申し込み前に<a href="./legal/terms.html">利用規約</a>と<a href="./legal/tokushoho.html">特定商取引法に基づく表記</a>をご確認ください。</p>
     <p class="disc">予測タイムは身長・体重・年齢・現在の走力から算出した参考値です。トレーニングおよび栄養に関する内容は一般的な情報であり、個別の医学的・栄養指導ではありません。</p>
     <button class="redo" onclick="restartAll()">入力をやり直す</button>
@@ -1080,6 +1086,7 @@ function closeWeek(){
       </div>
       <div class="delta">${gain>0?"−"+ms(gain):"±0:00"} ／ 実施 ${done.length}/${WEEK.length}日</div>
       <div class="note">${note}</div>
+      <button class="sumshare" onclick="shareCard(${oldT})">今週の結果をシェアする</button>
     </div>`;
   track("week_closed",{adherence:Math.round(adh*100)});
   $("rClose").scrollIntoView({behavior:"smooth",block:"center"});
@@ -1137,19 +1144,162 @@ if("serviceWorker" in navigator){
 }
 
 const SITE_URL="https://zono062.github.io/hyrox-shindan/";
-function share(){
-  track("share_click");
-  const lines=[
-    "HYROX完走診断",
-    "予測タイム "+hms(R.total),
-    "必要な準備 "+R.need+"週"
-  ];
-  if(R.left!==null) lines.push(RACES[A.race].label+"まで "+R.left+"週");
-  lines.push(SITE_URL);
-  const t=lines.join("\n");
-  if(navigator.share){navigator.share({text:t}).catch(()=>{})}
-  else{navigator.clipboard?.writeText(t);alert("結果をコピーしました")}
+const SHARE_HOST=SITE_URL.replace(/^https?:\/\//,"").replace(/\/$/,"");
+
+/* ============ シェアカード ============
+   テキストではなく画像を吐く。文字列のシェアはSNSに貼れないため。
+   週締め後は「予測タイムが動いた差分」を主役にする。動いた数字だけが話題になる。 */
+async function ensureFonts(){
+  if(!document.fonts||!document.fonts.load) return;
+  await Promise.all([
+    document.fonts.load('700 140px "Barlow Condensed"'),
+    document.fonts.load('900 46px "Noto Sans JP"'),
+    document.fonts.load('500 28px "IBM Plex Mono"')
+  ]).catch(()=>{});
 }
+
+/* 折り返し。行頭に来てはいけない文字（禁則）は前の行に送る */
+const NOSTART="。、．，）］｝」』】〉》”’!?！？・ー：；.,)]}";
+function wrapText(x,text,maxW){
+  const out=[]; let line="";
+  for(const ch of text){
+    if(x.measureText(line+ch).width>maxW && line){
+      if(NOSTART.indexOf(ch)>=0){ out.push(line+ch); line="" }
+      else { out.push(line); line=ch }
+    } else line+=ch;
+  }
+  if(line) out.push(line);
+  return out;
+}
+
+/* before が渡されたら「短縮した」カード、なければ「診断結果」カード */
+async function buildShareCard(before){
+  await ensureFonts();
+  const W=1080,H=1350,PAD=84;
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const x=c.getContext("2d");
+  x.fillStyle="#0B0B0B"; x.fillRect(0,0,W,H);
+
+  x.textAlign="left"; x.textBaseline="top";
+  x.fillStyle="#FFFFFF";
+  x.font='700 30px "Barlow Condensed", sans-serif'; x.letterSpacing="10px";
+  x.fillText("ROXX  /  完走診断", PAD, PAD);
+  x.strokeStyle="#2C2C2C"; x.lineWidth=2;
+  x.beginPath(); x.moveTo(PAD,PAD+58); x.lineTo(W-PAD,PAD+58); x.stroke();
+
+  x.letterSpacing="0px";
+  x.fillStyle="#8A8A85";
+  x.font='500 26px "IBM Plex Mono", monospace';
+  x.fillText(before?"第"+(Store.get("week")||1)+"週を終えて":"予測完走タイム", PAD, PAD+118);
+
+  let y=PAD+170;
+  if(before && before>R.total){
+    // 旧タイムに取り消し線 → 新タイム
+    x.fillStyle="#6E6E6A";
+    x.font='700 62px "Barlow Condensed", sans-serif';
+    const oldTxt=hms(before), ow=x.measureText(oldTxt).width;
+    x.fillText(oldTxt, PAD, y);
+    x.strokeStyle="#6E6E6A"; x.lineWidth=4;
+    x.beginPath(); x.moveTo(PAD,y+34); x.lineTo(PAD+ow,y+34); x.stroke();
+    y+=86;
+  }
+  x.fillStyle="#FFFFFF";
+  x.font='700 176px "Barlow Condensed", sans-serif';
+  x.fillText(hms(R.total), PAD, y);
+  y+=196;
+
+  if(before && before>R.total){
+    x.fillStyle="#E5341F";
+    x.font='700 54px "Barlow Condensed", sans-serif';
+    x.fillText("− "+ms(before-R.total)+" 短縮", PAD, y);
+    y+=86;
+  } else {
+    // 診断直後は「間に合うか」の一文が一番強い。空白を埋めるのではなく、ここが主役
+    const el=document.getElementById("rGap");
+    const msg=el?el.textContent.trim().replace(/\s+/g," "):"";
+    if(msg){
+      x.fillStyle="#FFFFFF";
+      x.font='900 44px "Noto Sans JP", sans-serif';
+      wrapText(x,msg,W-PAD*2).slice(0,4).forEach(l=>{ x.fillText(l,PAD,y); y+=62 });
+      y+=24;
+    }
+  }
+
+  // 行データ
+  const rows=[];
+  if(before){
+    const done=LOG.filter(l=>l.state==="done").length;
+    rows.push(["今週の実施", done+" / "+WEEK.length+" 日"]);
+  }
+  rows.push(["必要な準備", R.need+" 週"]);
+  if(R.left!==null) rows.push([RACES[A.race].label+"まで", R.left+" 週"]);
+  if(R.over&&R.over[0]) rows.push(["いま止まる箇所", R.over[0].name]);
+
+  y=Math.max(y+30, H-PAD-190-rows.length*84);
+  rows.forEach(([k,v])=>{
+    x.strokeStyle="#2C2C2C"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(PAD,y); x.lineTo(W-PAD,y); x.stroke();
+    x.fillStyle="#8A8A85"; x.font='500 28px "IBM Plex Mono", monospace';
+    x.textAlign="left"; x.fillText(k, PAD, y+26);
+    x.fillStyle="#FFFFFF"; x.font='900 40px "Noto Sans JP", sans-serif';
+    x.textAlign="right"; x.fillText(v, W-PAD, y+20);
+    x.textAlign="left";
+    y+=84;
+  });
+
+  x.fillStyle="#E5341F"; x.fillRect(PAD, H-PAD-56, 8, 46);
+  x.fillStyle="#FFFFFF";
+  x.font='700 34px "Barlow Condensed", sans-serif'; x.letterSpacing="6px";
+  x.fillText(SHARE_HOST, PAD+26, H-PAD-52);
+  x.letterSpacing="0px";
+  return c;
+}
+
+function shareText(before){
+  const l=["ROXX 完走診断"];
+  if(before&&before>R.total) l.push("予測タイム "+hms(before)+" → "+hms(R.total));
+  else l.push("予測タイム "+hms(R.total));
+  l.push("必要な準備 "+R.need+"週");
+  if(R.left!==null) l.push(RACES[A.race].label+"まで "+R.left+"週");
+  l.push(SITE_URL);
+  return l.join("\n");
+}
+
+async function shareCard(before){
+  track("share_click",{kind:before?"week":"result"});
+  const text=shareText(before);
+  let blob=null;
+  try{
+    const c=await buildShareCard(before);
+    blob=await new Promise(r=>c.toBlob(r,"image/png"));
+  }catch(e){}
+
+  if(blob){
+    const file=new File([blob],"roxx.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],text}); return }
+      catch(e){ if(e&&e.name==="AbortError") return }
+    }
+  }
+  if(navigator.share){
+    try{ await navigator.share({text}); return }
+    catch(e){ if(e&&e.name==="AbortError") return }
+  }
+  if(blob){
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download="roxx.png"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    try{ await navigator.clipboard?.writeText(text) }catch(e){}
+    alert("画像を保存し、テキストをコピーしました");
+    return;
+  }
+  try{ await navigator.clipboard?.writeText(text) }catch(e){}
+  alert("結果をコピーしました");
+}
+
+function share(){ shareCard(null) }
+
 </script>
 </body>
 </html>
