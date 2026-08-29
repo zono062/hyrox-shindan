@@ -1,0 +1,138 @@
+{
+  "version": "0.1",
+  "note": "基準時間はOpen完走者の中央値レベルを想定した初期値。実測データで要キャリブレーション。",
+
+  "race_spec": {
+    "runs": { "count": 8, "distance_m": 1000 },
+    "stations": [
+      { "id": "ski",      "name": "スキーエルゴ",           "unit": "m",   "amount": 1000, "load_kg": null },
+      { "id": "push",     "name": "ソリ押し",               "unit": "m",   "amount": 50,   "load_kg": { "open_m": 152, "open_f": 102, "pro_m": 202, "pro_f": 152 } },
+      { "id": "pull",     "name": "ソリ引き",               "unit": "m",   "amount": 50,   "load_kg": { "open_m": 103, "open_f": 78,  "pro_m": 153, "pro_f": 103 } },
+      { "id": "burpee",   "name": "バーピーブロードジャンプ", "unit": "m",   "amount": 80,   "load_kg": null },
+      { "id": "row",      "name": "ローイング",             "unit": "m",   "amount": 1000, "load_kg": null },
+      { "id": "farmers",  "name": "ファーマーズキャリー",    "unit": "m",   "amount": 200,  "load_kg": { "open_m": 24, "open_f": 16, "pro_m": 32, "pro_f": 24, "per_hand": true } },
+      { "id": "lunge",    "name": "サンドバッグランジ",      "unit": "m",   "amount": 100,  "load_kg": { "open_m": 20, "open_f": 10, "pro_m": 30, "pro_f": 20 } },
+      { "id": "wallball", "name": "ウォールボール",         "unit": "rep", "amount": 100,  "load_kg": { "open_m": 6, "open_f": 4, "pro_m": 9, "pro_f": 6 },
+        "target_m": { "open_m": 3.00, "open_f": 2.70, "pro_m": 3.00, "pro_f": 2.70 } }
+    ]
+  },
+
+  "baseline_seconds": {
+    "_comment": "体重70kg / 身長175cm / 男性Open / 初回出場 を基準1.0とした秒数",
+    "ski": 260, "push": 165, "pull": 200, "burpee": 300,
+    "row": 260, "farmers": 120, "lunge": 270, "wallball": 360
+  },
+
+  "run_model": {
+    "_comment": "8本の1kmラップ = フレッシュ5kmペース + 疲労ペナルティ",
+    "compromised_penalty_sec_per_km": { "beginner": 75, "intermediate": 55, "advanced": 35 },
+    "bodyweight_coef": 0.010,
+    "bodyweight_ref_kg": 70,
+    "_bw_formula": "run_mult = 1 + 0.010 * (BW - 70)  ※BW>70のみ適用",
+    "fallback_5k_sec": { "beginner": 1800, "intermediate": 1500, "advanced": 1260 }
+  },
+
+  "roxzone_seconds": {
+    "_comment": "8回の移動合計。経験で最も縮む場所",
+    "race_1": 600, "race_2_3": 480, "race_4plus": 390
+  },
+
+  "bodyweight_coefficients": {
+    "_comment": "負荷が絶対値なので体重比で難易度が決まる。mult = 1 + k * (相対負荷 / 基準相対負荷 - 1)",
+    "push":    { "k": 0.35, "ref_ratio_open_m": 2.17, "ref_ratio_open_f": 1.82 },
+    "pull":    { "k": 0.28, "ref_ratio_open_m": 1.47, "ref_ratio_open_f": 1.39 },
+    "farmers": { "k": 0.30, "ref_ratio_open_m": 0.69, "ref_ratio_open_f": 0.57 },
+    "lunge":   { "k": 0.25, "ref_ratio_open_m": 0.29, "ref_ratio_open_f": 0.18 },
+    "ski":     { "k": -0.10, "_comment": "体重が重い方が有利（マイナス係数）" },
+    "row":     { "k": -0.12 }
+  },
+
+  "height_coefficients": {
+    "_comment": "ウォールボールのみ身長が効く。投擲距離 D = target_m - 身長m * 1.30",
+    "wallball": { "k": 0.45, "reach_factor": 1.30, "ref_height_m": 1.75 },
+    "lunge":    { "k": -0.15, "_comment": "高身長は100mあたりの歩数が減り有利", "ref_height_m": 1.75 },
+    "burpee":   { "k": -0.10, "_comment": "80mあたりの跳躍回数が減り有利", "ref_height_m": 1.75 }
+  },
+
+  "age_coefficients": {
+    "_comment": "全種目一律の乗数",
+    "u30": 0.97, "30_39": 1.00, "40_49": 1.06, "50_59": 1.15, "60plus": 1.26
+  },
+
+  "periodization": {
+    "12plus_weeks": { "base": 4, "specific": 4, "competition": 3, "taper": 1 },
+    "8_11_weeks":   { "base": 0, "specific": 5, "competition": 2, "taper": 1 },
+    "5_7_weeks":    { "base": 0, "specific": 4, "competition": 1, "taper": 1 },
+    "under_4_weeks":{ "base": 0, "specific": 0, "competition": 0, "taper": 0,
+                      "policy": "完走特化。ラン量は維持のみ、新規の高強度刺激は入れない" }
+  },
+
+  "weekly_structure": {
+    "_comment": "練習可能日数 → セッション配分",
+    "3": { "run": 1, "compromised": 1, "strength": 1 },
+    "4": { "run": 2, "compromised": 1, "strength": 1 },
+    "5": { "run": 2, "compromised": 1, "strength": 2 },
+    "6": { "run": 3, "compromised": 1, "strength": 2 }
+  },
+
+  "weakness_allocation": {
+    "_comment": "予測タイムへの寄与率上位2種目に、筋力/コンプロセッションの容量の50%を配分",
+    "top_n": 2, "allocation_ratio": 0.5,
+    "run_floor_ratio": 0.35, "_run_floor_comment": "ラン配分はどんな弱点でも35%を下回らせない"
+  },
+
+  "run_progression": {
+    "weekly_increase_max": 0.10,
+    "target_weekly_km_by_goal": { "finish": 22, "sub_90": 32, "sub_75": 45 },
+    "taper_reduction": 0.55
+  },
+
+  "substitutions": {
+    "_comment": "日本のジム環境向け。fidelity = 本番刺激の再現度",
+    "ski": {
+      "gym":   { "movement": "ラットプルダウン 30rep×4 or ストレートアームプルダウン", "fidelity": 0.75 },
+      "home":  { "movement": "バンドストレートアームプルダウン 連続60秒×4", "fidelity": 0.55 }
+    },
+    "push": {
+      "gym":   { "movement": "レッグプレス 体重×1.5を20rep×4 + 坂ダッシュ12.5m×4", "fidelity": 0.65 },
+      "home":  { "movement": "壁押しウォーク60秒×4 + 片脚ステップアップ20rep×4", "fidelity": 0.40 }
+    },
+    "pull": {
+      "gym":   { "movement": "シーテッドロー 25rep×4 or ロープ手繰り", "fidelity": 0.70 },
+      "home":  { "movement": "バンドロー 連続90秒×4", "fidelity": 0.50 }
+    },
+    "burpee": {
+      "gym":   { "movement": "そのまま実施（80m ≒ 40回）", "fidelity": 1.00 },
+      "home":  { "movement": "そのまま実施。スペースなければバーピー+立ち幅跳び分割", "fidelity": 0.95 }
+    },
+    "row": {
+      "gym":   { "movement": "ローイングマシン。なければエアバイク4分", "fidelity": 0.85 },
+      "home":  { "movement": "マウンテンクライマー/バーピー 4分連続", "fidelity": 0.50 }
+    },
+    "farmers": {
+      "gym":   { "movement": "ダンベル/KB歩行 200m相当（50m×4）", "fidelity": 0.95 },
+      "home":  { "movement": "水18Lタンク×2で歩行（約18kg/手）", "fidelity": 0.85 }
+    },
+    "lunge": {
+      "gym":   { "movement": "バーベル/ダンベル歩行ランジ 100m", "fidelity": 0.90 },
+      "home":  { "movement": "リュックに20kg（水・本）で歩行ランジ100m", "fidelity": 0.85 }
+    },
+    "wallball": {
+      "gym":   { "movement": "メディシンボールがなければゴブレットスクワット+プレス 100rep", "fidelity": 0.80 },
+      "home":  { "movement": "ジャンプスクワット or リュック背負いスクワット 100rep", "fidelity": 0.65 }
+    },
+    "_honest_gap": "自重環境ではソリ2種の fidelity が0.4〜0.5に留まる。レース4週前までに一度は実物のソリを触ることを必ず出力に明記する。"
+  },
+
+  "nutrition": {
+    "_comment": "指示ではなくレンジ提示。免責文を必ず併記",
+    "tdee_formula": "Mifflin-St Jeor × 活動係数",
+    "activity_factor": { "3day": 1.5, "4day": 1.6, "5day": 1.7, "6day": 1.8 },
+    "protein_g_per_kg": [1.6, 2.2],
+    "carb_g_per_kg_training": [5, 7],
+    "carb_g_per_kg_race_week": [8, 10],
+    "fat_min_g_per_kg": 0.8,
+    "cut_policy": "減量はレース6週前で終了。それ以降のカロリー不足はタイムを悪化させる",
+    "disclaimer": "一般的な栄養学に基づく参考レンジです。個別の指導ではありません。"
+  }
+}

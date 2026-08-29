@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HYROX 完走診断</title>
+<meta name="description" content="8つの質問で、予測完走タイム・本番で止まる箇所・必要な準備週数が出る。HYROX未経験者のための完走診断。">
+<link rel="canonical" href="https://zono062.github.io/hyrox-shindan/">
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0B0B0B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HYROX診断">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+
+<!-- OGP -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HYROX完走診断">
+<meta property="og:title" content="HYROX完走診断 — 出られるかどうかを、先に確かめる。">
+<meta property="og:description" content="8つの質問で、予測完走タイム・本番で止まる箇所・必要な準備週数が出る。所要30秒・無料。">
+<meta property="og:url" content="https://zono062.github.io/hyrox-shindan/">
+<meta property="og:image" content="https://zono062.github.io/hyrox-shindan/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HYROX完走診断 — 出られるかどうかを、先に確かめる。">
+<meta name="twitter:description" content="8つの質問で、予測完走タイム・本番で止まる箇所・必要な準備週数が出る。所要30秒・無料。">
+<meta name="twitter:image" content="https://zono062.github.io/hyrox-shindan/ogp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B0B0B;
+  --paper:#FFFFFF;
+  --field:#F2F2F0;
+  --rule:#D8D8D4;
+  --mute:#7A7A76;
+  --alert:#E5341F;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--ink)}
+body{
+  font-family:"Noto Sans JP",sans-serif;
+  color:var(--ink);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+#app{
+  max-width:460px;margin:0 auto;min-height:100dvh;
+  background:var(--paper);position:relative;overflow:hidden;
+}
+.num{font-family:"Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.mono{font-family:"IBM Plex Mono",monospace}
+
+/* ---------- shared ---------- */
+.screen{display:none;padding:0 22px 40px}
+.screen.on{display:block;animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute);
+}
+.btn{
+  width:100%;border:none;background:var(--ink);color:#fff;
+  font-family:"Noto Sans JP",sans-serif;font-weight:700;font-size:15px;
+  padding:17px;cursor:pointer;letter-spacing:.04em;
+}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,.opt:focus-visible{outline:2px solid var(--alert);outline-offset:2px}
+
+/* ---------- intro ---------- */
+.hero{padding:64px 0 0}
+.hero .mark{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;
+  letter-spacing:.34em;text-transform:uppercase;
+}
+.hero h1{
+  font-weight:900;font-size:31px;line-height:1.28;margin:26px 0 16px;
+  letter-spacing:-.01em;
+}
+.hero p{font-size:14px;color:var(--mute);margin-bottom:38px}
+.spec{border-top:1px solid var(--rule);margin-bottom:38px}
+.spec div{
+  display:flex;justify-content:space-between;padding:11px 0;
+  border-bottom:1px solid var(--rule);font-size:12px;
+}
+.spec span:first-child{color:var(--mute)}
+.spec span:last-child{font-family:"IBM Plex Mono",monospace}
+
+/* ---------- questions ---------- */
+.qtop{display:flex;justify-content:space-between;align-items:center;padding:26px 0 0}
+.bar{height:2px;background:var(--rule);margin:14px 0 34px}
+.bar i{display:block;height:100%;background:var(--ink);transition:width .3s}
+.q{font-weight:700;font-size:21px;line-height:1.45;margin-bottom:6px}
+.qs{font-size:12px;color:var(--mute);margin-bottom:24px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{
+  border:1px solid var(--rule);background:var(--paper);text-align:left;
+  padding:15px 16px;font-family:"Noto Sans JP",sans-serif;font-size:14px;
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;
+}
+.opt:hover{border-color:var(--ink)}
+.opt b{font-weight:500}
+.opt em{font-style:normal;font-size:11px;color:var(--mute);text-align:right}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid2 .opt{justify-content:center}
+
+.stepper{display:flex;align-items:stretch;border:1px solid var(--rule)}
+.stepper button{
+  width:60px;border:none;background:var(--field);font-size:22px;cursor:pointer;
+  font-family:"Barlow Condensed",sans-serif;color:var(--ink);
+}
+.stepper .val{
+  flex:1;text-align:center;padding:18px 0;
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:38px;
+}
+.stepper .val small{font-size:14px;color:var(--mute);margin-left:4px;font-weight:500}
+.back{
+  background:none;border:none;font-size:12px;color:var(--mute);
+  cursor:pointer;padding:16px 0 0;font-family:"Noto Sans JP",sans-serif;
+}
+
+/* ---------- generating ---------- */
+#gen{background:var(--ink);color:#fff;min-height:100dvh;padding:0 22px}
+#gen.on{display:flex;flex-direction:column;justify-content:center}
+.genhead{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.2em;color:#8A8A85;margin-bottom:20px}
+#log{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:2.05;
+  min-height:270px;
+}
+#log div{display:flex;justify-content:space-between;gap:10px;opacity:0;animation:row .28s ease forwards}
+#log div span:first-child{color:#8A8A85}
+#log div span:last-child{color:#fff}
+#log div.hi span:last-child{color:var(--alert)}
+@keyframes row{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:none}}
+.genbar{height:1px;background:#2C2C2C;margin-top:26px}
+.genbar i{display:block;height:100%;background:#fff;width:0}
+
+/* ---------- result ---------- */
+.rtop{padding:30px 0 0}
+.finish{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:76px;line-height:.94;letter-spacing:-.02em;margin:10px 0 12px;
+}
+.verdict{
+  display:inline-block;border:1px solid var(--ink);padding:5px 11px;
+  font-size:11px;font-weight:700;letter-spacing:.04em;
+}
+.sec{margin-top:44px}
+.sec h2{
+  font-size:11px;font-family:"IBM Plex Mono",monospace;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute);
+  padding-bottom:9px;border-bottom:1px solid var(--ink);margin-bottom:18px;
+}
+.risk{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--rule)}
+.risk .tag{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:12px;
+  color:var(--alert);border:1px solid var(--alert);padding:1px 6px;height:fit-content;
+  letter-spacing:.06em;
+}
+.risk b{display:block;font-size:15px;font-weight:700;margin-bottom:3px}
+.risk p{font-size:12.5px;color:var(--mute);line-height:1.55}
+
+.gap{background:var(--field);padding:22px 20px}
+.gaprow{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0}
+.gaprow span{font-size:12.5px}
+.gaprow b{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:30px}
+.gapline{height:1px;background:var(--rule);margin:10px 0}
+.gapout{font-size:15px;font-weight:700;padding-top:6px;line-height:1.5}
+
+.road{border-left:1px solid var(--rule);margin-left:6px;padding-left:22px}
+.step{position:relative;padding:13px 0}
+.step::before{
+  content:"";position:absolute;left:-27px;top:19px;width:9px;height:9px;
+  border-radius:50%;background:var(--paper);border:1px solid var(--rule);
+}
+.step.now::before{background:var(--ink);border-color:var(--ink)}
+.step.entry::before{
+  border-radius:0;background:var(--alert);border-color:var(--alert);
+  transform:rotate(45deg);left:-28px;
+}
+.step .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.step b{font-size:14.5px;font-weight:700}
+.step.lock b{color:var(--mute)}
+.step em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mute)}
+.step small{display:block;font-size:11.5px;color:var(--mute);margin-top:2px}
+.step.entry b{color:var(--alert)}
+
+/* week plan */
+.day{border:1px solid var(--rule);margin-bottom:10px}
+.dayhd{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--ink);color:#fff;padding:11px 14px;
+}
+.dayhd b{font-size:13px;font-weight:700}
+.dayhd em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:#A5A5A0}
+.daybd{padding:14px}
+.ex{display:flex;gap:11px;padding:8px 0;border-bottom:1px dashed var(--rule)}
+.ex:last-of-type{border-bottom:none}
+.ex i{
+  font-style:normal;font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:12px;color:var(--mute);padding-top:2px;min-width:14px;
+}
+.ex div b{display:block;font-size:13.5px;font-weight:700;line-height:1.45}
+.ex div span{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--mute)}
+.aim{
+  margin-top:11px;padding-top:11px;border-top:1px solid var(--rule);
+  font-size:12px;color:var(--mute);line-height:1.6;
+}
+.aim b{color:var(--ink);font-weight:700}
+.envtag{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  border:1px solid var(--rule);padding:2px 7px;color:var(--mute);margin-bottom:14px;
+}
+.wk{margin-bottom:22px}
+.wkhd{
+  display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid var(--ink);padding-bottom:7px;margin-bottom:10px;
+}
+.wkhd b{font-size:13px;font-weight:700}
+.wkhd em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--mute)}
+.locked{position:relative;border:1px solid var(--rule);margin-bottom:10px;overflow:hidden}
+.locked .dayhd{background:var(--field);color:var(--mute)}
+.locked .daybd{filter:blur(4.5px);opacity:.5;pointer-events:none;user-select:none}
+.lockover{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--ink);
+}
+.lockover span{background:rgba(255,255,255,.86);padding:7px 14px;border:1px solid var(--ink)}
+/* tracking */
+.prog{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.prog span{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mute)}
+.prog b{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px}
+.pbar{height:3px;background:var(--rule);margin-bottom:18px}
+.pbar i{display:block;height:100%;background:var(--ink);width:0;transition:width .35s}
+.day.done{opacity:.62}
+.day.done .dayhd{background:var(--mute)}
+.chk{border-top:1px solid var(--rule);padding:11px 14px;background:var(--field)}
+.chk .go{
+  width:100%;border:1px solid var(--ink);background:none;padding:11px;cursor:pointer;
+  font-family:"Noto Sans JP",sans-serif;font-size:13px;font-weight:700;
+}
+.chk .go:active{background:var(--ink);color:#fff}
+.lvl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.lvl button{
+  border:1px solid var(--rule);background:var(--paper);padding:10px 4px;cursor:pointer;
+  font-family:"Noto Sans JP",sans-serif;font-size:12px;
+}
+.lvl button:hover{border-color:var(--ink)}
+.doneline{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;color:var(--mute);font-family:"IBM Plex Mono",monospace;
+}
+.doneline button{background:none;border:none;color:var(--mute);font-size:11px;cursor:pointer;text-decoration:underline}
+.skip{
+  width:100%;background:none;border:none;color:var(--mute);font-size:11.5px;
+  padding:9px 0 0;cursor:pointer;text-decoration:underline;font-family:"Noto Sans JP",sans-serif;
+}
+#rClose{margin-top:16px}
+.sum{background:var(--ink);color:#fff;padding:26px 20px;margin-top:16px}
+.sum .lab{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.18em;color:#8A8A85}
+.sum .shift{display:flex;align-items:baseline;gap:12px;margin:12px 0 6px}
+.sum .old{font-family:"Barlow Condensed",sans-serif;font-size:27px;color:#6E6E6A;text-decoration:line-through}
+.sum .arw{color:#6E6E6A;font-size:15px}
+.sum .new{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:44px}
+.sum .delta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:#fff;margin-bottom:20px}
+.sum .note{font-size:12.5px;line-height:1.7;color:#C9C9C5;border-top:1px solid #2C2C2C;padding-top:16px}
+.sum .note b{color:#fff}
+.cta{margin-top:44px;border-top:2px solid var(--ink);padding-top:22px}
+.price{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
+.price b{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:40px}
+.price span{font-size:12px;color:var(--mute)}
+.ghost{
+  width:100%;margin-top:9px;background:none;border:1px solid var(--rule);
+  padding:15px;font-size:13px;cursor:pointer;font-family:"Noto Sans JP",sans-serif;
+}
+.ctalegal{font-size:10.5px;color:var(--mute);margin-top:14px;line-height:1.7}
+.ctalegal a{color:var(--ink)}
+.disc{font-size:10.5px;color:var(--mute);margin-top:26px;line-height:1.7}
+.foot{
+  border-top:1px solid var(--rule);margin:0 22px;padding:22px 0 34px;
+  display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;
+}
+.foot a{font-size:11px;color:var(--mute);text-decoration:underline}
+.foot small{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--mute);width:100%}
+.redo{
+  display:block;width:100%;margin-top:18px;background:none;border:none;
+  color:var(--mute);font-size:11.5px;cursor:pointer;text-decoration:underline;
+  font-family:"Noto Sans JP",sans-serif;padding:6px 0;
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- INTRO -->
+<section class="screen on" id="s-intro">
+  <div class="hero">
+    <div class="mark">Hyrox Japan / 完走診断</div>
+    <h1>出られるかどうかを、<br>先に確かめる。</h1>
+    <p>8つの質問に答えると、あなたの予測完走タイムと、本番で止まる箇所、そして間に合うかどうかが出ます。所要30秒。</p>
+    <div class="spec">
+      <div><span>レース構成</span><span>1km × 8 + 8ステーション</span></div>
+      <div><span>次回開催</span><span>大阪 2027.01.21</span></div>
+      <div><span>完走率</span><span>99%+</span></div>
+    </div>
+    <button class="btn" onclick="start()">診断をはじめる</button>
+  </div>
+</section>
+
+<!-- QUESTION -->
+<section class="screen" id="s-q">
+  <div class="qtop">
+    <div class="eyebrow" id="qidx">Q1 / 8</div>
+    <div class="eyebrow">完走診断</div>
+  </div>
+  <div class="bar"><i id="qbar" style="width:12.5%"></i></div>
+  <div class="q" id="qtitle"></div>
+  <div class="qs" id="qsub"></div>
+  <div id="qbody"></div>
+  <button class="back" id="qback" onclick="prevQ()">← 戻る</button>
+</section>
+
+<!-- GENERATING -->
+<section class="screen" id="gen">
+  <div class="genhead">CALCULATING / 個別係数を適用しています</div>
+  <div id="log"></div>
+  <div class="genbar"><i id="genbar"></i></div>
+</section>
+
+<!-- RESULT -->
+<section class="screen" id="s-res">
+  <div class="rtop">
+    <div class="eyebrow">予測完走タイム</div>
+    <div class="finish num" id="rTime">--:--:--</div>
+    <div class="verdict" id="rVerdict"></div>
+  </div>
+
+  <div class="sec">
+    <h2>本番で止まる箇所</h2>
+    <div id="rRisks"></div>
+  </div>
+
+  <div class="sec">
+    <h2>間に合うか</h2>
+    <div class="gap">
+      <div class="gaprow"><span id="rRaceName">大阪大会まで</span><b class="num" id="rWeeksLeft">--</b></div>
+      <div class="gaprow"><span>あなたに必要な期間</span><b class="num" id="rWeeksNeed">--</b></div>
+      <div class="gapline"></div>
+      <div class="gapout" id="rGap"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>出場までのロードマップ</h2>
+    <div class="road" id="rRoad"></div>
+  </div>
+
+  <div class="sec">
+    <h2>第1週にやること</h2>
+    <div class="envtag" id="rEnv"></div>
+    <div class="prog"><span>今週の実施</span><b class="num" id="pTxt">0 / 0</b></div>
+    <div class="pbar"><i id="pBar"></i></div>
+    <div id="rWeek"></div>
+    <div id="rClose"></div>
+  </div>
+
+  <div class="sec">
+    <h2>第2週以降</h2>
+    <div id="rLocked"></div>
+  </div>
+
+  <div class="cta">
+    <div class="price" id="ctaPrice"><b class="num">¥980</b><span>／月・いつでも解約</span></div>
+    <button class="btn" id="ctaBtn" onclick="checkout()">段階1から始める</button>
+    <button class="ghost" onclick="share()">結果をシェアする</button>
+    <p class="ctalegal">月額980円・自動更新／いつでも解約できます。お申し込み前に<a href="./legal/terms.html">利用規約</a>と<a href="./legal/tokushoho.html">特定商取引法に基づく表記</a>をご確認ください。</p>
+    <p class="disc">予測タイムは身長・体重・年齢・現在の走力から算出した参考値です。トレーニングおよび栄養に関する内容は一般的な情報であり、個別の医学的・栄養指導ではありません。</p>
+    <button class="redo" onclick="restartAll()">入力をやり直す</button>
+  </div>
+</section>
+
+<footer class="foot">
+  <a href="./legal/tokushoho.html">特定商取引法に基づく表記</a>
+  <a href="./legal/privacy.html">プライバシーポリシー</a>
+  <a href="./legal/terms.html">利用規約</a>
+  <small>&copy; HYROX完走診断</small>
+</footer>
+
+</div>
+
+<script>
+/* ============ ENGINE (hyrox_engine_v0) ============ */
+const BASE={ski:260,push:165,pull:200,burpee:300,row:260,farmers:120,lunge:270,wallball:360};
+const GF={ski:1.12,row:1.12,burpee:1.08,push:1.0,pull:1.0,farmers:1.0,lunge:1.0,wallball:1.05};
+const LOAD={m:{push:152,pull:103,farmers:48,lunge:20,target:3.00},f:{push:102,pull:78,farmers:32,lunge:10,target:2.70}};
+const REFBW={m:70,f:58}, REFHT={m:1.75,f:1.62};
+const KBW={push:.35,pull:.28,farmers:.30,lunge:.25,ski:-.10,row:-.12};
+const FIVEK={known:null,unknown:1800,km3:2040,km1:2400,none:2760};
+const PEN={beginner:75,intermediate:55,advanced:35};
+const NAMES={ski:"スキーエルゴ",push:"ソリ押し",pull:"ソリ引き",burpee:"バーピーBJ",row:"ローイング",farmers:"ファーマーズ",lunge:"サンドバッグランジ",wallball:"ウォールボール"};
+const RACES={osaka:{label:"大阪大会",date:"2027-01-21"},nagoya:{label:"名古屋大会",date:"2027-04-16"},none:{label:"目標レース",date:null}};
+
+function ageFactor(a){return a<30?.97:a<40?1.00:a<50?1.06:a<60?1.15:1.26}
+
+function compute(a){
+  const g=a.sex, L=LOAD[g], refBW=REFBW[g], refHT=REFHT[g], hm=a.height/100, af=ageFactor(a.age);
+  const S={}, ratio={};
+
+  // 荷重ステーション：体重比
+  ["push","pull","farmers","lunge"].forEach(k=>{
+    const r=L[k]/a.weight, ref=L[k]/refBW;
+    ratio[k]=r;
+    S[k]=BASE[k]*GF[k]*(1+KBW[k]*(r/ref-1))*af;
+  });
+  // 無荷重：体重は軽微に有利/不利
+  ["ski","row"].forEach(k=>{
+    S[k]=BASE[k]*GF[k]*(1+KBW[k]*(refBW/a.weight-1))*af;
+  });
+  // 身長が効く種目
+  const reach=hm*1.30, D=Math.max(.12,L.target-reach), refD=L.target-refHT*1.30;
+  S.wallball=BASE.wallball*GF.wallball*(1+.45*(D/refD-1))*af;
+  S.burpee=BASE.burpee*GF.burpee*(1-.10*(hm/refHT-1))*af;
+  S.lunge*=(1-.15*(hm/refHT-1));
+
+  // ラン
+  const fiveK=a.fivek==="known"?a.fivekSec:FIVEK[a.fivek];
+  let lvl="beginner";
+  if(a.fivek==="known"&&fiveK<1500) lvl="advanced";
+  else if(a.fivek==="known"||a.fivek==="unknown") lvl="intermediate";
+  if(a.days>=5&&lvl==="beginner") lvl="intermediate";
+  const lap=fiveK/5+PEN[lvl];
+  const bwMul=a.weight>refBW?1+.010*(a.weight-refBW):1;
+  const runTotal=lap*8*bwMul;
+
+  const rox=600;
+  const stationTotal=Object.values(S).reduce((x,y)=>x+y,0);
+  const total=runTotal+stationTotal+rox;
+
+  // 止まる箇所：基準からの超過秒
+  const over=Object.keys(S).map(k=>({k,name:NAMES[k],sec:S[k]-BASE[k]*GF[k],ratio:ratio[k]}));
+  const runBase=(FIVEK.unknown/5+PEN.intermediate)*8;
+  over.push({k:"run",name:"ラン8本",sec:runTotal-runBase});
+  over.sort((x,y)=>y.sec-x.sec);
+
+  // 必要週数
+  let need={none:20,km1:17,km3:14,unknown:11,known:10}[a.fivek];
+  need+= a.days<=3?3 : a.days===4?1 : a.days===5?0 : -1;
+  if(ratio.push>(L.push/refBW)*1.12) need+=2;
+  if(a.age>=50) need+=2;
+
+  let left=null;
+  if(RACES[a.race].date){
+    left=Math.floor((new Date(RACES[a.race].date)-new Date())/6048e5);
+  }
+  return{total,runTotal,S,rox,over:over.slice(0,2),need,left,lvl,ratio,D,lap};
+}
+const hms=s=>{s=Math.round(s);return[Math.floor(s/3600),Math.floor(s%3600/60),s%60].map((v,i)=>i?String(v).padStart(2,"0"):v).join(":")};
+const ms=s=>{s=Math.round(s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+
+/* ============ FLOW ============ */
+const A={sex:null,height:172,weight:68,age:32,fivek:null,fivekSec:1680,days:null,race:null,env:null};
+const A0=Object.freeze({...A});
+let step=0, R=null;
+
+const Q=[
+ {key:"sex",t:"部門を選んでください",s:"重量と目標高が変わるため、最初に必要です",
+  opts:[["m","男子 Open","ソリ152kg / WB6kg"],["f","女子 Open","ソリ102kg / WB4kg"]],grid:true},
+ {key:"height",t:"身長",s:"ウォールボール100回の負担が身長で変わります",num:{min:140,max:205,step:1,unit:"cm"}},
+ {key:"weight",t:"体重",s:"ソリの重量は絶対値。体重比で難易度が決まります",num:{min:38,max:140,step:1,unit:"kg"}},
+ {key:"age",t:"年齢",s:"年代別の基準時間を適用します",num:{min:16,max:79,step:1,unit:"歳"}},
+ {key:"fivek",t:"今、どのくらい走れますか",s:"わからなくて大丈夫です",
+  opts:[["known","5km走れる（タイムがわかる）",""],["unknown","5km走れる（タイムは不明）",""],["km3","3kmくらいなら",""],["km1","1kmが限界",""],["none","走る習慣がない",""]]},
+ {key:"days",t:"週に何日、練習できますか",s:"実際に確保できる日数でお答えください",
+  opts:[[3,"週3日",""],[4,"週4日",""],[5,"週5日",""],[6,"週6日以上",""]],grid:true},
+ {key:"race",t:"目標にするレースは",s:"未定でも診断できます",
+  opts:[["osaka","大阪","2027.01.21"],["nagoya","名古屋","2027.04.16"],["none","まだ決めていない",""]]},
+ {key:"env",t:"どこで練習しますか",s:"器具がない場合は代替種目に置き換えます",
+  opts:[["gym","ジムに通っている","マシンあり"],["home","自宅・自重が中心","器具ほぼなし"]],grid:true}
+];
+
+const $=id=>document.getElementById(id);
+const show=id=>{document.querySelectorAll(".screen").forEach(e=>e.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0)};
+
+function start(){track("start_diagnosis");step=0;show("s-q");renderQ()}
+function prevQ(){if(step===0){show("s-intro")}else{step--;renderQ()}}
+
+function renderQ(){
+  const q=Q[step];
+  $("qidx").textContent=`Q${step+1} / 8`;
+  $("qbar").style.width=((step+1)/8*100)+"%";
+  $("qtitle").textContent=q.t;
+  $("qsub").textContent=q.s;
+  const b=$("qbody");b.innerHTML="";
+
+  if(q.num){
+    const w=document.createElement("div");
+    w.innerHTML=`<div class="stepper">
+      <button aria-label="減らす">−</button>
+      <div class="val num"><span id="nv">${A[q.key]}</span><small>${q.num.unit}</small></div>
+      <button aria-label="増やす">+</button></div>
+      <button class="btn" style="margin-top:14px" id="nnext">次へ</button>`;
+    b.appendChild(w);
+    const bs=w.querySelectorAll(".stepper button");
+    const upd=d=>{A[q.key]=Math.min(q.num.max,Math.max(q.num.min,A[q.key]+d));$("nv").textContent=A[q.key]};
+    bs[0].onclick=()=>upd(-1); bs[1].onclick=()=>upd(1);
+    let t;
+    bs.forEach((btn,i)=>{
+      btn.onpointerdown=()=>{t=setInterval(()=>upd(i?1:-1),80)};
+      ["pointerup","pointerleave","pointercancel"].forEach(e=>btn.addEventListener(e,()=>clearInterval(t)));
+    });
+    $("nnext").onclick=nextQ;
+  } else {
+    const w=document.createElement("div");
+    w.className=q.grid?"grid2":"opts";
+    q.opts.forEach(([v,label,note])=>{
+      const el=document.createElement("button");
+      el.className="opt";
+      el.innerHTML=`<b>${label}</b>${note?`<em>${note}</em>`:""}`;
+      el.onclick=()=>{
+        A[q.key]=v;
+        if(q.key==="fivek"&&v==="known"){askPace();return}
+        nextQ();
+      };
+      w.appendChild(el);
+    });
+    b.appendChild(w);
+  }
+}
+function askPace(){
+  const b=$("qbody");
+  $("qtitle").textContent="5kmのタイム";
+  $("qsub").textContent="だいたいで構いません";
+  b.innerHTML=`<div class="stepper">
+    <button>−</button><div class="val num"><span id="pv">28</span><small>分</small></div><button>+</button></div>
+    <button class="btn" style="margin-top:14px" id="pnext">次へ</button>`;
+  let m=28;
+  const bs=b.querySelectorAll(".stepper button");
+  bs[0].onclick=()=>{m=Math.max(14,m-1);$("pv").textContent=m};
+  bs[1].onclick=()=>{m=Math.min(50,m+1);$("pv").textContent=m};
+  $("pnext").onclick=()=>{A.fivekSec=m*60;nextQ()};
+}
+function nextQ(){
+  track("q_step",{step:step+1,key:Q[step].key});
+  if(step<Q.length-1){step++;renderQ()}
+  else{
+    R=compute(A);
+    LOG=[]; closed=false;
+    Store.set("answers",A);
+    Store.set("log",[]);
+    Store.set("week",1);
+    saveResult();
+    runGen();
+  }
+}
+
+/* ============ GENERATION SEQUENCE ============ */
+function runGen(){
+  show("gen");
+  const log=$("log");log.innerHTML="";
+  const g=A.sex,L=LOAD[g];
+  const rows=[
+    ["INPUT",`${A.height}cm / ${A.weight}kg / ${A.age}y`,0],
+    ["DIVISION",g==="m"?"MEN OPEN":"WOMEN OPEN",0],
+    ["SLED RATIO",(L.push/A.weight).toFixed(2)+"× BW",(L.push/A.weight)>(L.push/REFBW[g])*1.12?1:0],
+    ["WB THROW",R.D.toFixed(2)+" m / rep",R.D>(L.target-REFHT[g]*1.30)*1.08?1:0],
+    ["AGE COEF","×"+ageFactor(A.age).toFixed(2),0],
+    ["RUN LAP",ms(R.lap)+" /km",0],
+    ...Object.keys(R.S).map(k=>["ST "+NAMES[k],ms(R.S[k]),0]),
+    ["ROXZONE",ms(R.rox),0],
+    ["RUN TOTAL",ms(R.runTotal),0],
+    ["———","———",0],
+    ["PROJECTED",hms(R.total),0]
+  ];
+  let i=0;
+  const bar=$("genbar");
+  const tick=()=>{
+    if(i>=rows.length){setTimeout(renderResult,620);return}
+    const [a,b_,hi]=rows[i];
+    const d=document.createElement("div");
+    if(hi)d.className="hi";
+    d.innerHTML=`<span>${a}</span><span>${b_}</span>`;
+    log.appendChild(d);
+    if(log.children.length>13)log.removeChild(log.firstChild);
+    bar.style.width=((i+1)/rows.length*100)+"%";
+    i++;
+    setTimeout(tick,i<3?260:130);
+  };
+  tick();
+}
+
+/* ============ RESULT ============ */
+let countIv=null;
+function stopCount(){ if(countIv){clearInterval(countIv);countIv=null} }
+
+function renderResult(){
+  show("s-res");
+  track("diagnosis_complete",{need:R.need,left:R.left,paid:PAID});
+  // タイムをカウントアップ
+  const el=$("rTime");let v=R.total*.55;
+  stopCount();
+  countIv=setInterval(()=>{
+    if(!R){stopCount();return}
+    v+=(R.total-v)*.18;
+    if(Math.abs(R.total-v)<.6){v=R.total;stopCount()}
+    el.textContent=hms(v);
+  },28);
+
+  $("rVerdict").textContent=`${A.sex==="m"?"男子":"女子"} Open ／ 完走率 99%以上のレースです`;
+
+  const L=LOAD[A.sex];
+  const detail={
+    push:`152kgのソリ（そり込み）はあなたの体重の${(L.push/A.weight).toFixed(1)}倍。50mを4本に分けて押します。`,
+    pull:`ロープでソリを50m引き寄せます。前腕が先に落ちる箇所です。`,
+    farmers:`両手${L.farmers/2}kgで200m。ソリ引きの直後なので握力が残っていません。`,
+    lunge:`${L.lunge}kgを担いで100mのランジ。効くのは筋力ではなく姿勢です。`,
+    ski:`1000m。序盤に飛ばすと後半のランに響きます。`,
+    row:`1000m。ペース配分だけで1分近く変わります。`,
+    burpee:`80m。回数ではなくリズムで決まります。`,
+    wallball:`100回。1回あたりの投擲距離が${R.D.toFixed(2)}mあり、標準より負担が大きい体格です。`,
+    run:`合計8km。現在の走力だと6本目以降で失速する想定です。`
+  };
+  $("rRisks").innerHTML=R.over.map((o,i)=>`
+    <div class="risk">
+      <div class="tag num">0${i+1}</div>
+      <div><b>${o.name}</b><p>${detail[o.k]}</p></div>
+    </div>`).join("");
+
+  // 間に合うか
+  const race=RACES[A.race];
+  if(R.left!==null){
+    $("rRaceName").textContent=race.label+"まで";
+    $("rWeeksLeft").innerHTML=R.left+'<small style="font-size:13px"> 週</small>';
+  }else{
+    $("rRaceName").textContent="目標レース";
+    $("rWeeksLeft").innerHTML='<small style="font-size:13px">未設定</small>';
+  }
+  $("rWeeksNeed").innerHTML=R.need+'<small style="font-size:13px"> 週</small>';
+
+  let msg;
+  if(R.left===null){
+    msg=`準備には <b>${R.need}週</b> 必要です。今から始めれば ${new Date(Date.now()+R.need*6048e5).toLocaleDateString("ja-JP",{year:"numeric",month:"long"})} 以降のレースに間に合います。`;
+  }else if(R.left>=R.need){
+    msg=`<b>${R.left-R.need}週の余裕があります。</b>${race.label}に出られます。`;
+  }else{
+    const alt=R.need-R.left;
+    msg=`${race.label}には <b>${alt}週</b> 足りません。名古屋（2027.04.16）なら間に合います。`;
+  }
+  $("rGap").innerHTML=msg;
+
+  // ロードマップ
+  const p1=A.fivek==="none"||A.fivek==="km1"?5:3;
+  const p2=Math.max(4,Math.round(R.need*.35));
+  const p4=Math.max(4,R.need-p1-p2-1);
+  const road=[
+    ["now","0","現在地測定","診断で完了","",""],
+    ["lock","1","完走ラインに乗る",`8kmを止まらず走れる状態へ`,p1+"週",""],
+    ["lock","2","足切り3つを突破",`ソリ50m／WB100回／ラン8km`,p2+"週",""],
+    ["entry","3","エントリー",`ここまで${p1+p2}週。出るかどうかはここで決めます`,"",""],
+    ["lock","4","特異期",`ステーション直後に走る練習が中心`,p4+"週",""],
+    ["lock","5","テーパー",`量を55%に落として本番に合わせる`,"1週",""],
+    ["lock","6","当日の攻略",`動線・持ち物・ロクゾーンの削り方`,"",""]
+  ];
+  $("rRoad").innerHTML=road.map(([cls,n,title,sub,wk])=>`
+    <div class="step ${cls}">
+      <div class="row"><b>${n}. ${title}</b><em>${wk||(cls==="now"?"完了":"")}</em></div>
+      <small>${sub}${cls==="lock"?" 🔒":""}</small>
+    </div>`).join("");
+
+  renderWeek();
+  watchWeekScroll();
+}
+
+/* 第1週セクションが画面に入ったら1度だけ発火 */
+let weekSeen=false;
+function weekInView(){
+  const el=$("rWeek"); if(!el) return false;
+  const r=el.getBoundingClientRect();
+  const vh=window.innerHeight||document.documentElement.clientHeight;
+  return r.top < vh*0.85 && r.bottom > 0;
+}
+function checkWeekScroll(){
+  if(weekSeen) return;
+  if(!weekInView()) return;
+  weekSeen=true;
+  track("week_scroll");
+  window.removeEventListener("scroll",checkWeekScroll);
+  window.removeEventListener("resize",checkWeekScroll);
+}
+function watchWeekScroll(){
+  if(weekSeen) return;
+  window.addEventListener("scroll",checkWeekScroll,{passive:true});
+  window.addEventListener("resize",checkWeekScroll,{passive:true});
+  checkWeekScroll();   // 既に見えている場合にも対応
+}
+
+/* ============ WEEK 1 PLAN ============ */
+const RUN1={
+ none:{min:"30分",ex:[["早歩き 5分","ウォームアップ"],["ジョグ4分 → 歩き1分","× 4セット（20分）"],["歩き 5分","クールダウン"]],
+       aim:"いきなり走り切ろうとしないこと。<b>会話ができるペース</b>を守るのが今週の唯一のルールです。"},
+ km1:{min:"32分",ex:[["早歩き 5分","ウォームアップ"],["ジョグ6分 → 歩き1分","× 4セット（28分）"],["歩き 4分","クールダウン"]],
+      aim:"1kmの壁は心肺ではなく<b>ペース設定</b>です。遅すぎると感じる速度で始めます。"},
+ km3:{min:"35分",ex:[["ジョグ 8分","ウォームアップ"],["3km を一定ペースで","止まらないことだけを目標に"],["歩き 5分","クールダウン"]],
+      aim:"距離を伸ばす前に<b>ペースを一定にする</b>週。速く走る練習は来週から。"},
+ unknown:{min:"40分",ex:[["ジョグ 8分","ウォームアップ"],["5km を一定ペースで","キロ何分か記録する"],["歩き 5分","クールダウン"]],
+      aim:"今週は<b>自分の5kmタイムを確定させる</b>のが目的。ここが全メニューの基準値になります。"},
+ known:{min:"42分",ex:[["ジョグ 8分","ウォームアップ"],["5km をレースペース+40秒/km","余裕を残して終える"],["歩き 5分","クールダウン"]],
+      aim:"本番の1kmラップは今の5kmペース+55秒前後。<b>その速度に体を慣らす</b>週です。"}
+};
+const STR1={
+ push:{title:"ソリ押し対策",
+  gym:[["レッグプレス 体重×1.0","20回 × 4セット / 休息90秒"],["傾斜15%の早歩き","1分 × 6本"],["ゴブレットスクワット","15回 × 3セット"]],
+  home:[["壁押しウォーク","45秒 × 6本"],["ブルガリアンスクワット","左右12回 × 3セット"],["ジャンプスクワット","15回 × 3セット"]],
+  aim:"ソリは筋力より<b>前傾角と歩幅</b>で決まります。今週は脚を止めずに動かし続ける感覚を作ります。"},
+ pull:{title:"ソリ引き・グリップ対策",
+  gym:[["シーテッドロー 軽め","25回 × 4セット"],["ラットプルダウン","20回 × 3セット"],["デッドハング","30秒 × 4本"]],
+  home:[["バンドロー","90秒連続 × 4セット"],["タオル懸垂ホールド","20秒 × 5本"],["ペットボトル持ち歩き","2分 × 3本"]],
+  aim:"ソリ引きの直後にファーマーズが来ます。<b>前腕は本番で2回連続で使われる</b>ので、今から独立して鍛えます。"},
+ wallball:{title:"ウォールボール対策",
+  gym:[["ゴブレットスクワット+プレス","20回 × 5セット"],["メディシンボールスロー","15回 × 4セット"],["スクワットホールド","45秒 × 3本"]],
+  home:[["ジャンプスクワット","20回 × 5セット"],["リュック背負いスクワット","25回 × 4セット"],["スクワットホールド","45秒 × 3本"]],
+  aim:"100回を一度に狙わないこと。今週は<b>20回×5に分ける型</b>を体に入れます。本番も同じ分割で行きます。"},
+ lunge:{title:"サンドバッグランジ対策",
+  gym:[["バーベル歩行ランジ 20kg","25m × 4本"],["ステップアップ","左右12回 × 3セット"],["プランク","60秒 × 3本"]],
+  home:[["リュック20kgで歩行ランジ","25m × 4本"],["ステップアップ（階段）","左右15回 × 3セット"],["プランク","60秒 × 3本"]],
+  aim:"落ちるのは脚力ではなく<b>姿勢</b>。担いだまま上体を立てて歩けるかが全てです。"},
+ farmers:{title:"ファーマーズ対策",
+  gym:[["ダンベル歩行","50m × 4本 / 持ち替えなし"],["デッドハング","30秒 × 4本"],["ファーマーズホールド","45秒 × 3本"]],
+  home:[["水18Lタンク×2で歩行","50m × 4本"],["タオル懸垂ホールド","20秒 × 5本"],["買い物袋ホールド","60秒 × 3本"]],
+  aim:"200mを<b>何回持ち替えるか</b>でタイムが決まります。今週は「置かない」ことだけ意識します。"},
+ ski:{title:"スキーエルゴ対策",
+  gym:[["スキーエルゴ 250m","× 4本 / 休息60秒"],["ラットプルダウン","20回 × 4セット"],["腹圧ドリル","10回 × 3セット"]],
+  home:[["バンドプルダウン","60秒 × 6セット"],["パイクプッシュアップ","10回 × 3セット"],["腹圧ドリル","10回 × 3セット"]],
+  aim:"腕で引かず<b>体重を落として引く</b>動作を覚える週。序盤に飛ばすと後半のランが崩れます。"},
+ row:{title:"ローイング対策",
+  gym:[["ローイング 250m","× 4本 / 休息60秒"],["ヒップヒンジ","15回 × 3セット"],["バイク 3分","× 3本"]],
+  home:[["バーピー 60秒 → 休息60秒","× 6セット"],["ヒップヒンジ","15回 × 3セット"],["マウンテンクライマー 60秒","× 4本"]],
+  aim:"1000mは<b>ペース配分だけで1分近く変わります</b>。今週は一定ペースを守る練習です。"},
+ run:{title:"脚づくり",
+  gym:[["トレッドミル傾斜10% 早歩き","3分 × 5本"],["レッグプレス","20回 × 4セット"],["カーフレイズ","25回 × 3セット"]],
+  home:[["階段ダッシュ","30秒 × 8本"],["ブルガリアンスクワット","左右12回 × 3セット"],["カーフレイズ","25回 × 3セット"]],
+  aim:"8kmの後半で落ちるのは心肺より<b>脚の耐久</b>。走らずに脚を作る日です。"}
+};
+const COMP1={
+ gym:[["バーピーブロードジャンプ 10m","→ すぐに200mラン"],["これを4セット","休息は90秒まで"],["最後に歩き5分","クールダウン"]],
+ home:[["バーピー 10回","→ すぐに外に出て200mラン"],["これを4セット","休息は90秒まで"],["最後に歩き5分","クールダウン"]]
+};
+
+/* ============ WEEK 2-4 PLAN（漸進） ============ */
+/* 第1週の実施ログから、翌週以降の漸進率を決める。
+   ラン量は週10%を上限（故障要因のため、余裕があっても超えない）。
+   余裕があったぶんは筋力側のセット数で吸収する。 */
+const RUNBASE={none:30,km1:32,km3:35,unknown:40,known:42};
+const RUNKM={km3:3,unknown:5,known:5};
+const JOGMIN={none:4,km1:6};
+
+function weekAdherence(){
+  if(!closed||!WEEK.length) return null;
+  const done=LOG.filter(l=>l.state==="done");
+  return {adh:done.length/WEEK.length, lvl:done.length?done.reduce((x,l)=>x+l.lvl,0)/done.length:2};
+}
+function progression(){
+  const a=weekAdherence();
+  if(!a)                        return {run:1.10,addSets:1,drop:0,tag:"標準漸進"};
+  if(a.adh>=1&&a.lvl<1.6)       return {run:1.10,addSets:2,drop:0,tag:"余裕あり／筋力を上乗せ"};
+  if(a.adh>=1)                  return {run:1.10,addSets:1,drop:0,tag:"標準漸進"};
+  if(a.adh>=0.6)                return {run:1.00,addSets:0,drop:0,tag:"漸進なし／同じ強度でもう1週"};
+  return {run:1.00,addSets:0,drop:1,tag:"1日減らして再構成"};
+}
+/* 「20回 × 4セット」→「20回 × 5セット」 */
+function bumpSets(txt,add){
+  return add?String(txt).replace(/×\s*(\d+)\s*(セット|本)/,(m,d,u)=>"× "+(Number(d)+add)+u):txt;
+}
+const r1=v=>Math.round(v*10)/10;
+/* 前週比のラベル（第4週は減量なので符号を正しく出す） */
+function deltaLabel(mul,n,run){
+  const prev = n>=4 ? Math.pow(run,2) : Math.pow(run,n-2);
+  const d=Math.round((mul/prev-1)*100);
+  return d>0?"+"+d+"%":d<0?d+"%":"±0%";
+}
+
+/* ラン日：週ごとの倍率から実数値を作る */
+function runDay(fivek,mul,n){
+  const warm=fivek==="none"||fivek==="km1"?5:8, cool=5;
+  if(fivek==="none"||fivek==="km1"){
+    const total=Math.round(JOGMIN[fivek]*4*mul), sets=4, per=Math.max(3,Math.round(total/sets));
+    return {t:"ラン",n:(warm+per*sets+sets+cool)+"分",
+      ex:[["早歩き "+warm+"分","ウォームアップ"],
+          [`ジョグ${per}分 → 歩き1分`,`× ${sets}セット（${per*sets+sets}分）`],
+          ["歩き "+cool+"分","クールダウン"]],
+      aim:`第${n}週のラン量は前週比${deltaLabel(mul,n,1.10)}。<b>増やすのは週10%まで</b>、それ以上は故障します。今週も会話ができるペースを守ります。`};
+  }
+  const km=r1(RUNKM[fivek]*mul);
+  const pace=fivek==="known"?"レースペース+40秒/km":"一定ペースで";
+  return {t:"ラン",n:Math.round(warm+km*7+cool)+"分",
+    ex:[["ジョグ "+warm+"分","ウォームアップ"],
+        [`${km}km を${pace}`,`前週から${deltaLabel(mul,n,1.10)}`],
+        ["歩き "+cool+"分","クールダウン"]],
+    aim:`距離は<b>週10%までしか増やしません</b>。${km}kmを一定ペースで押し切れれば、本番の8kmは射程に入ります。`};
+}
+
+/* ステーション連結（第3週から）：2種目を続けて行う */
+function comboDay(w1,w2,env){
+  const a=(STR1[w1]||STR1.run)[env][0], b=(STR1[w2]||STR1.run)[env][0];
+  return {t:"ステーション連結",n:"35分",
+    ex:[[a[0]+" → 休まず "+b[0],"この2つで1セット"],
+        ["2種目を続けて 4セット","セット間の休息は90秒まで"],
+        ["最後に 400m ラン","疲れた脚で走る感覚を作る"]],
+    aim:`本番はステーションが<b>連続で来ます</b>。1種目ずつなら余裕でも、続けると別物です。${NAMES[w1]}と${NAMES[w2]}はあなたの弱点1位・2位なので、ここを繋げて慣らします。`};
+}
+
+/* 第4週：足切りテスト週 */
+function testDay(env,km){
+  return {t:"足切りテスト",n:"60分",
+    ex:[["ソリ50m相当","傾斜早歩き3分×3 ／ 止まらず押し切れるか"],
+        ["ウォールボール100回","20回×5に分割。合計タイムを記録"],
+        [`ラン ${km}km`,"止まらず完走できるかを実測"]],
+    aim:`第4週は<b>測る週</b>です。3つとも通れば、ロードマップの段階3（エントリー）に進む判断材料が揃います。通らなかった項目が、次の4週間でやることそのものになります。`};
+}
+
+function buildWeek(n){
+  if(n<=1) return buildWeek1();
+  const env=A.env, P=progression();
+  const days=Math.max(3,A.days-P.drop);
+  const w1=R.over[0].k, w2=R.over[1].k;
+  const s1=STR1[w1]||STR1.run, s2=STR1[w2]||STR1.run;
+
+  // ラン倍率：週10%上限で複利。第4週はテスト週なので前週の80%
+  let mul=Math.pow(P.run,n-1);
+  if(n>=4) mul=Math.pow(P.run,2)*0.8;
+
+  /* 週の日数 = 確保できる日数（実施率60%未満なら1日減）。
+     第3週以降は「ステーション連結」を1日追加する（doc TASK 4）。 */
+  const D=[];
+  D.push(runDay(A.fivek,mul,n));
+  D.push({t:s1.title,n:"40分",
+    ex:s1[env].map(e=>[e[0],bumpSets(e[1],P.addSets)]),
+    aim:s1.aim+`（第${n}週：弱点1位のため、セット数を+${P.addSets||0}しています）`});
+  if(days>=4) D.push({t:"ラン（軽め）",n:"25分",
+    ex:[["ジョグ 20分","会話できるペースを厳守"],["歩き 5分","クールダウン"]],
+    aim:"疲労を抜くための日。<b>速く走らないことが目的</b>です。"});
+  if(n>=4) D.push(testDay(env,8));
+  else D.push({t:"コンプロミックス",n:"30分",ex:COMP1[env],
+    aim:"ステーション直後の1kmは<b>普段より55秒前後遅くなります</b>。その落差に体を慣らす日です。"});
+  if(n>=3) D.push(comboDay(w1,w2,env));
+  if(days>=5) D.push({t:s2.title,n:"35分",ex:s2[env].map(e=>[e[0],bumpSets(e[1],Math.max(0,P.addSets-1))]),aim:s2.aim});
+  if(days>=6) D.push({t:"ラン（長め）",n:"50分",
+    ex:[["ジョグ 8分","ウォームアップ"],[`今週の最長 ${r1((RUNKM[A.fivek]||4)*mul*1.2)}km`,"一定ペースで"],["歩き 6分","クールダウン"]],
+    aim:"週で最も距離を踏む日。<b>増やすのは週10%まで</b>。それ以上は故障します。"});
+  return D;
+}
+
+function buildWeek1(){
+  const env=A.env, days=A.days;
+  const w1=R.over[0].k, w2=R.over[1].k;
+  const s1=STR1[w1]||STR1.run, s2=STR1[w2]||STR1.run;
+  const r=RUN1[A.fivek];
+  const D=[];
+  D.push({t:"ラン",n:r.min,ex:r.ex,aim:r.aim});
+  D.push({t:s1.title,n:"40分",ex:s1[env],aim:s1.aim});
+  D.push({t:"コンプロミックス入門",n:"25分",ex:COMP1[env],
+    aim:"本番の1kmは、ステーション直後なので<b>普段より55秒前後遅くなります</b>。その感覚を最初に知っておく日です。"});
+  if(days>=4)D.splice(2,0,{t:"ラン（軽め）",n:"25分",
+    ex:[["ジョグ 20分","会話できるペースを厳守"],["歩き 5分","クールダウン"]],
+    aim:"疲労を抜くための日。<b>速く走らないことが目的</b>です。"});
+  if(days>=5)D.push({t:s2.title,n:"35分",ex:s2[env],aim:s2.aim});
+  if(days>=6)D.push({t:"ラン（長め）",n:"50分",
+    ex:[["ジョグ 8分","ウォームアップ"],["今週の最長距離を一定ペースで","前日までの合計の1.2倍まで"],["歩き 6分","クールダウン"]],
+    aim:"週で最も距離を踏む日。<b>増やすのは週10%まで</b>。それ以上は故障します。"});
+  return D;
+}
+
+/* ---- storage: localStorage（キー接頭辞 hx_） ---- */
+const Store={
+  get(k){ try{ const v=localStorage.getItem("hx_"+k); return v?JSON.parse(v):null }catch(e){ return null } },
+  set(k,v){ try{ localStorage.setItem("hx_"+k, JSON.stringify(v)) }catch(e){} },
+  del(k){ try{ localStorage.removeItem("hx_"+k) }catch(e){} }
+};
+
+/* 保存キー: hx_answers / hx_result / hx_log / hx_week / hx_paid */
+function saveResult(){ Store.set("result",{total:R.total,need:R.need,over:R.over,closed}) }
+
+/* ============ 計測（GA4 / Meta Pixel） ============ */
+/* 測定IDが決まったらこの2行を埋める。空のままでも track() は安全に何もしない */
+const GA4_ID = "";           // 例: G-XXXXXXXXXX
+const META_PIXEL_ID = "";    // 例: 1234567890
+
+(function loadAnalytics(){
+  if(GA4_ID){
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){dataLayer.push(arguments)};
+    gtag("js",new Date()); gtag("config",GA4_ID);
+    const g=document.createElement("script");
+    g.async=true; g.src="https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(GA4_ID);
+    document.head.appendChild(g);
+  }
+  if(META_PIXEL_ID){
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
+    fbq("init",META_PIXEL_ID); fbq("track","PageView");
+  }
+})();
+
+function track(name,params){
+  const p=params||{};
+  try{ if(window.gtag) gtag("event",name,p) }catch(e){}
+  try{ if(window.fbq) fbq("trackCustom",name,p) }catch(e){}
+}
+
+/* ============ 決済（Stripe Payment Link） ============ */
+/* 本番URLが決まったら、この1行だけ差し替える。
+   商品：HYROX完走プログラム / 月額 ¥980 / サブスクリプション
+   決済後のリダイレクト先：https://<ドメイン>/?paid=1               */
+const PAYMENT_LINK = "";
+
+/* 決済からの復帰：?paid=1 を検出してフラグを立て、クエリを消す */
+(function(){
+  try{
+    const params=new URLSearchParams(location.search);
+    if(params.get("paid")==="1"){
+      Store.set("paid",true);
+      track("purchase",{value:980,currency:"JPY"});
+      history.replaceState({},"",location.pathname);
+    }
+  }catch(e){}
+})();
+let PAID = Store.get("paid")===true;
+
+function checkout(){
+  track("checkout_click");
+  if(!PAYMENT_LINK){ alert("決済の準備中です。もう少しお待ちください。"); return }
+  location.href=PAYMENT_LINK;
+}
+
+let WEEK=[], LOG=[], closed=false;
+
+function renderWeek(){
+  $("rEnv").textContent = A.env==="gym" ? "ジム版／マシンを使った構成" : "自重版／器具なしで完結する構成";
+  WEEK=buildWeek1();
+  if(LOG.length!==WEEK.length) LOG=WEEK.map(()=>({state:"open",lvl:null}));
+  paintWeek();
+
+  renderNextWeeks();
+}
+
+/* ---- 第2〜4週：課金状態で出し分ける ---- */
+function renderNextWeeks(){
+  const w1=R.over[0].name;
+  const nx=[
+    [2,"第2週","ラン量+10%／"+w1+"の負荷を上げる"],
+    [3,"第3週","ステーション連結2種目／初回タイム測定"],
+    [4,"第4週","足切りテスト：ソリ50m・WB100回"]
+  ];
+  $("rLocked").innerHTML = PAID
+    ? nx.map(([n,t])=>openWeekCard(n,t)).join("")
+    : nx.map(([n,t,s])=>lockedWeekCard(t,s)).join("");
+  paintCta();
+}
+
+function lockedWeekCard(t,s){
+  return `<div class="locked">
+      <div class="dayhd"><b>${t}</b><em>LOCKED</em></div>
+      <div class="daybd">
+        <div class="ex"><i>1</i><div><b>${s}</b><span>4セット × 休息90秒</span></div></div>
+        <div class="ex"><i>2</i><div><b>ステーション特化ドリル</b><span>20回 × 4セット</span></div></div>
+        <div class="ex"><i>3</i><div><b>コンプロミックス</b><span>800m × 3本</span></div></div>
+      </div>
+      <div class="lockover"><span>🔒 ${t}を見る</span></div>
+    </div>`;
+}
+
+/* TASK 4 で buildWeek(n) の実メニューに差し替える */
+function openWeekCard(n,t){
+  const days=buildWeek(n);
+  return `<div class="wk">
+      <div class="wkhd"><b>${t}</b><em>${days.length}日 ／ ${progression().tag}</em></div>
+      ${days.map((d,i)=>`
+        <div class="day">
+          <div class="dayhd"><b>DAY ${i+1}　${d.t}</b><em>${d.n}</em></div>
+          <div class="daybd">
+            ${d.ex.map((e,j)=>`<div class="ex"><i>${j+1}</i><div><b>${e[0]}</b><span>${e[1]}</span></div></div>`).join("")}
+            <div class="aim">狙い：${d.aim}</div>
+          </div>
+        </div>`).join("")}
+    </div>`;
+}
+
+/* 課金済みなら決済導線を出さない（二重課金の防止） */
+function paintCta(){
+  if(!PAID) return;
+  $("ctaPrice").innerHTML='<span>ご利用中／第2週以降が解除されています</span>';
+  const b=$("ctaBtn");
+  b.textContent="第2週を見る";
+  b.onclick=()=>$("rLocked").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+const LVLTXT={1:"楽だった",2:"ちょうどよかった",3:"きつかった"};
+
+function paintWeek(){
+  $("rWeek").innerHTML=WEEK.map((d,i)=>{
+    const l=LOG[i];
+    let foot;
+    if(l.state==="open"){
+      foot=`<button class="go" onclick="markDone(${i})">完了にする</button>
+            <button class="skip" onclick="markSkip(${i})">できなかった</button>`;
+    }else if(l.state==="asking"){
+      foot=`<div style="font-size:12px;margin-bottom:8px">きつさはどうでしたか？</div>
+            <div class="lvl">
+              <button onclick="setLvl(${i},1)">楽</button>
+              <button onclick="setLvl(${i},2)">ちょうど</button>
+              <button onclick="setLvl(${i},3)">きつい</button>
+            </div>`;
+    }else if(l.state==="done"){
+      foot=`<div class="doneline"><span>✓ 完了 ／ ${LVLTXT[l.lvl]}</span><button onclick="reset(${i})">取り消す</button></div>`;
+    }else{
+      foot=`<div class="doneline"><span>— 未実施</span><button onclick="reset(${i})">取り消す</button></div>`;
+    }
+    return `<div class="day ${l.state==="done"||l.state==="skip"?"done":""}">
+      <div class="dayhd"><b>DAY ${i+1}　${d.t}</b><em>${d.n}</em></div>
+      <div class="daybd">
+        ${d.ex.map((e,j)=>`<div class="ex"><i>${j+1}</i><div><b>${e[0]}</b><span>${e[1]}</span></div></div>`).join("")}
+        <div class="aim">狙い：${d.aim}</div>
+      </div>
+      <div class="chk">${foot}</div>
+    </div>`;
+  }).join("");
+
+  const done=LOG.filter(l=>l.state==="done").length;
+  const settled=LOG.filter(l=>l.state==="done"||l.state==="skip").length;
+  $("pTxt").textContent=`${done} / ${WEEK.length}`;
+  $("pBar").style.width=(done/WEEK.length*100)+"%";
+
+  $("rClose").innerHTML = (settled===WEEK.length && !closed)
+    ? `<button class="btn" onclick="closeWeek()">第1週を締めて、来週の調整を見る</button>` : "";
+  Store.set("log",LOG);
+}
+function markDone(i){LOG[i].state="asking";paintWeek()}
+function setLvl(i,v){LOG[i].state="done";LOG[i].lvl=v;track("day_done",{day:i+1,level:v});paintWeek()}
+function markSkip(i){LOG[i].state="skip";LOG[i].lvl=null;paintWeek()}
+function reset(i){LOG[i]={state:"open",lvl:null};closed=false;$("rClose").innerHTML="";paintWeek();saveResult()}
+
+/* ---- 週の締め：実施ログから予測タイムと必要週数を再計算 ---- */
+function closeWeek(){
+  closed=true;
+  const done=LOG.filter(l=>l.state==="done");
+  const adh=done.length/WEEK.length;
+  const lv=done.length?done.reduce((s,l)=>s+l.lvl,0)/done.length:2;
+
+  let addWeeks = adh>=1?0 : adh>=0.6?1 : 2;
+  let gain = done.length*22 + (lv<1.6?35:0) - (lv>2.6?10:0);
+  if(adh<0.6) gain=Math.max(0,gain-20);
+
+  const oldT=R.total, newT=Math.max(oldT*0.55, oldT-gain);
+  const newNeed=R.need+addWeeks;
+
+  let note;
+  if(adh>=1&&lv<1.6){
+    note=`全部こなせて、しかも余裕があった週。<b>来週は負荷を10%上げます。</b>この調子なら必要週数は前倒しできます。`;
+  }else if(adh>=1){
+    note=`全日完了。<b>来週は標準どおりラン量を10%増やします。</b>増やすのは週10%まで、それ以上は故障するので勝手には上げません。`;
+  }else if(adh>=0.6){
+    note=`できなかった日は<b>翌週に持ち越しません。</b>詰め込むと折れるので、同じ強度でもう1週やります。必要週数は${newNeed}週に更新しました。`;
+  }else{
+    note=`今週は消化できませんでした。<b>来週は日数を1日減らして組み直します。</b>崩れたぶんは必要週数を${newNeed}週に伸ばして吸収するので、計画は壊れていません。`;
+  }
+  const left=R.left;
+  if(left!==null){
+    note += left>=newNeed
+      ? `　<b>${RACES[A.race].label}まで${left}週。まだ${left-newNeed}週の余裕があります。</b>`
+      : `　<b>${RACES[A.race].label}には${newNeed-left}週足りません。名古屋（2027.04.16）に切り替えれば間に合います。</b>`;
+  }
+
+  $("rClose").innerHTML=`
+    <div class="sum">
+      <div class="lab">第1週の結果を反映した予測完走タイム</div>
+      <div class="shift">
+        <span class="old">${hms(oldT)}</span><span class="arw">→</span><span class="new">${hms(newT)}</span>
+      </div>
+      <div class="delta">${gain>0?"−"+ms(gain):"±0:00"} ／ 実施 ${done.length}/${WEEK.length}日</div>
+      <div class="note">${note}</div>
+    </div>`;
+  track("week_closed",{adherence:Math.round(adh*100)});
+  $("rClose").scrollIntoView({behavior:"smooth",block:"center"});
+  R.total=newT; R.need=newNeed;
+  $("rTime").textContent=hms(newT);
+  $("rWeeksNeed").innerHTML=newNeed+'<small style="font-size:13px"> 週</small>';
+  saveResult();
+}
+
+/* ---- 入力のやり直し：hx_paid は残す（課金者の課金を消さない） ---- */
+function restartAll(){
+  if(!confirm("入力と実施ログを消して、最初からやり直します。よろしいですか？")) return;
+  stopCount();
+  ["answers","result","log","week"].forEach(k=>Store.del(k));   // paid は削除しない
+  Object.assign(A,A0);
+  R=null; step=0; WEEK=[]; LOG=[]; closed=false;
+  $("rClose").innerHTML="";
+  $("rWeek").innerHTML="";
+  show("s-intro");
+}
+
+/* ---- 復帰：保存済みの診断があれば結果画面へ直行 ---- */
+function validAnswers(o){
+  if(!o||typeof o!=="object") return false;
+  if(o.sex!=="m"&&o.sex!=="f") return false;
+  if(!FIVEK.hasOwnProperty(o.fivek)) return false;
+  if(!RACES.hasOwnProperty(o.race)) return false;
+  if(o.env!=="gym"&&o.env!=="home") return false;
+  const nums=[o.height,o.weight,o.age,o.days,o.fivekSec];
+  return nums.every(n=>typeof n==="number"&&isFinite(n)&&n>0);
+}
+function restore(){
+  const saved=Store.get("answers");
+  if(!validAnswers(saved)) return false;
+  Object.assign(A,saved);
+  R=compute(A);
+  const st=Store.get("result");
+  if(st&&typeof st==="object"){
+    if(typeof st.total==="number"&&isFinite(st.total)) R.total=st.total;
+    if(typeof st.need==="number"&&isFinite(st.need)) R.need=st.need;
+    closed = st.closed===true;
+  }
+  const lg=Store.get("log");
+  LOG = Array.isArray(lg)?lg:[];
+  renderResult();   // 生成演出はスキップして結果画面へ直行
+  return true;
+}
+window.addEventListener("DOMContentLoaded",restore);
+
+/* ---- PWA: service worker（キャッシュのみの最小実装） ---- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+
+const SITE_URL="https://zono062.github.io/hyrox-shindan/";
+function share(){
+  track("share_click");
+  const lines=[
+    "HYROX完走診断",
+    "予測タイム "+hms(R.total),
+    "必要な準備 "+R.need+"週"
+  ];
+  if(R.left!==null) lines.push(RACES[A.race].label+"まで "+R.left+"週");
+  lines.push(SITE_URL);
+  const t=lines.join("\n");
+  if(navigator.share){navigator.share({text:t}).catch(()=>{})}
+  else{navigator.clipboard?.writeText(t);alert("結果をコピーしました")}
+}
+</script>
+</body>
+</html>
