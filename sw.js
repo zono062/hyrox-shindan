@@ -1,7 +1,11 @@
 /* 最小のservice worker：ネットワーク優先＋キャッシュ退避。
    オフライン対応は目的ではなく、ホーム画面起動の要件を満たすためのもの。 */
-const C = "hx-v1";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const C = "hx-v2";
+const ASSETS = [
+  "./", "./index.html", "./manifest.json",
+  "./icon-192.png", "./icon-512.png",
+  "./icon-maskable-192.png", "./icon-maskable-512.png", "./apple-touch-icon.png"
+];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()).catch(() => {}));
