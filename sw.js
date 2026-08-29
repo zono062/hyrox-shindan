@@ -1,6 +1,6 @@
 /* 最小のservice worker：ネットワーク優先＋キャッシュ退避。
    オフライン対応は目的ではなく、ホーム画面起動の要件を満たすためのもの。 */
-const C = "hx-v2";
+const C = "hx-v3";
 const ASSETS = [
   "./", "./index.html", "./manifest.json",
   "./icon-192.png", "./icon-512.png",
