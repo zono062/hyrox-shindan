@@ -297,6 +297,27 @@ body{
 .price{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
 .price b{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:40px}
 .price span{font-size:12px;color:var(--mute)}
+.authlead{font-size:13px;line-height:1.75;color:var(--mute);margin-bottom:14px}
+.authlead b{color:var(--ink);font-weight:700}
+.authinput{
+  width:100%;border:1px solid var(--rule);background:var(--paper);
+  padding:14px;font-size:15px;font-family:"Noto Sans JP",sans-serif;
+  margin-bottom:9px;color:var(--ink);
+}
+.authinput:focus{outline:2px solid var(--ink);outline-offset:-2px}
+.authmsg{font-size:12px;color:var(--mute);margin-top:10px;line-height:1.7}
+.authmsg.err{color:var(--alert)}
+.authnote{font-size:11px;color:var(--mute);margin-top:12px;line-height:1.7}
+.acctrow{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  border:1px solid var(--rule);padding:14px;
+}
+.acctrow b{font-size:14px;display:block}
+.acctrow span{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mute)}
+.acctrow button{
+  background:none;border:none;font-size:12px;color:var(--mute);cursor:pointer;
+  text-decoration:underline;font-family:"Noto Sans JP",sans-serif;white-space:nowrap;
+}
 .photorow{
   display:flex;justify-content:space-between;align-items:center;gap:10px;
   border:1px solid var(--rule);padding:11px 14px;margin-top:9px;
@@ -419,6 +440,10 @@ body{
     <button class="ghost" onclick="share()">結果を画像でシェアする</button>
     <p class="ctalegal">月額980円・自動更新／いつでも解約できます。お申し込み前に<a href="./legal/terms.html">利用規約</a>と<a href="./legal/tokushoho.html">特定商取引法に基づく表記</a>をご確認ください。</p>
     <p class="disc">予測タイムは身長・体重・年齢・現在の走力から算出した参考値です。トレーニングおよび栄養に関する内容は一般的な情報であり、個別の医学的・栄養指導ではありません。</p>
+    <div class="sec" style="margin-top:38px">
+      <h2>アカウント</h2>
+      <div id="acct"></div>
+    </div>
     <button class="redo" onclick="restartAll()">入力をやり直す</button>
   </div>
 </section>
@@ -654,6 +679,7 @@ function nextQ(){
     Store.set("log",[]);
     Store.set("week",1);
     saveResult();
+    if(typeof syncIfSignedIn==="function") syncIfSignedIn();
     runGen();
   }
 }
@@ -775,6 +801,7 @@ function renderResult(){
   watchWeekScroll();
   paintPhotoState();
   renderDoubles();
+  if(typeof paintAccount==="function") paintAccount();
 }
 
 /* 第1週セクションが画面に入ったら1度だけ発火 */
@@ -1133,6 +1160,7 @@ function paintWeek(){
   $("rClose").innerHTML = (settled===WEEK.length && !closed)
     ? `<button class="btn" onclick="closeWeek()">第1週を締めて、来週の調整を見る</button>` : "";
   Store.set("log",LOG);
+  Store.set("updated",Date.now());
 }
 function markDone(i){LOG[i].state="asking";paintWeek()}
 function setLvl(i,v){LOG[i].state="done";LOG[i].lvl=v;track("day_done",{day:i+1,level:v});paintWeek()}
@@ -1186,6 +1214,7 @@ function closeWeek(){
   $("rTime").textContent=hms(newT);
   $("rWeeksNeed").innerHTML=newNeed+'<small style="font-size:13px"> 週</small>';
   saveResult();
+  if(typeof syncIfSignedIn==="function") syncIfSignedIn();
 }
 
 
@@ -1532,5 +1561,7 @@ async function shareCard(before){
 function share(){ shareCard(null) }
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="./auth.js"></script>
 </body>
 </html>

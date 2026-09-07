@@ -165,6 +165,45 @@ returns boolean language sql stable security definer set search_path = public as
   );
 $$;
 
+-- スレッド内にブロック関係の相手がいるか
+create or replace function public.thread_has_block(t uuid, me uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.dm_participants p
+    where p.thread_id = t
+      and p.user_id <> me
+      and public.is_blocked(me, p.user_id)
+  );
+$$;
+
+-- DMスレッドの開始。既にあれば既存のものを返す。
+-- スレッドと参加者を作れる唯一の経路。相手側は accepted=false（リクエスト扱い）で始まる。
+create or replace function public.start_dm(target_user uuid)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare
+  me uuid := auth.uid();
+  t  uuid;
+begin
+  if me is null then raise exception 'not authenticated'; end if;
+  if target_user = me then raise exception 'cannot dm yourself'; end if;
+  if public.is_blocked(me, target_user) then raise exception 'blocked'; end if;
+
+  select p1.thread_id into t
+  from public.dm_participants p1
+  join public.dm_participants p2 on p2.thread_id = p1.thread_id
+  where p1.user_id = me and p2.user_id = target_user
+  limit 1;
+  if t is not null then return t; end if;
+
+  insert into public.dm_threads default values returning id into t;
+  insert into public.dm_participants (thread_id, user_id, accepted) values (t, me, true);
+  insert into public.dm_participants (thread_id, user_id, accepted) values (t, target_user, false);
+  return t;
+end;
+$$;
+revoke all on function public.start_dm(uuid) from public;
+grant execute on function public.start_dm(uuid) to authenticated;
+
 -- ============================================================
 -- RLS
 -- ============================================================
@@ -238,23 +277,25 @@ create policy stories_delete on public.stories for delete to authenticated
 
 -- 閲覧記録：自分が見たことだけ書ける。読めるのは投稿者と本人
 create policy views_insert on public.story_views for insert to authenticated
-  with check (auth.uid() = viewer_id);
+  with check (
+    auth.uid() = viewer_id
+    and exists (select 1 from public.stories s where s.id = story_views.story_id)
+  );
 create policy views_read on public.story_views for select to authenticated
   using (
     auth.uid() = viewer_id
     or exists (select 1 from public.stories s where s.id = story_id and s.author_id = auth.uid())
   );
 
--- DM：参加者のみ
+-- DM：参加者のみ。
+-- スレッドと参加者の作成は start_dm() だけが行う。直接 insert は許可しない。
+-- 直接 insert を許すと、他人のスレッドに自分を追加して会話を読めてしまう。
 create policy threads_read on public.dm_threads for select to authenticated
   using (public.in_thread(id, auth.uid()));
-create policy threads_insert on public.dm_threads for insert to authenticated
-  with check (true);
 
 create policy parts_read on public.dm_participants for select to authenticated
   using (public.in_thread(thread_id, auth.uid()));
-create policy parts_insert on public.dm_participants for insert to authenticated
-  with check (not public.is_blocked(auth.uid(), user_id));
+-- 承認（accepted）と既読の更新だけ、自分の行に対して許可する
 create policy parts_update on public.dm_participants for update to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -264,13 +305,8 @@ create policy messages_read on public.messages for select to authenticated
 create policy messages_insert on public.messages for insert to authenticated
   with check (
     auth.uid() = sender_id
-    and public.in_thread(thread_id, auth.uid())
-    and not exists (
-      select 1 from public.dm_participants p
-      where p.thread_id = thread_id
-        and p.user_id <> auth.uid()
-        and public.is_blocked(auth.uid(), p.user_id)
-    )
+    and public.in_thread(messages.thread_id, auth.uid())
+    and not public.thread_has_block(messages.thread_id, auth.uid())
   );
 
 -- ============================================================
