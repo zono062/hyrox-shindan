@@ -230,6 +230,7 @@ function paintAccount() {
       <div><b>${escapeHtml(MY_PROFILE.display_name)}</b><span>@${escapeHtml(MY_PROFILE.handle)}</span></div>
       <button onclick="signOut()">ログアウト</button>
     </div>
+    <button class="btn" style="margin-top:12px" onclick="openSocial()">仲間とストーリーを見る</button>
     <p class="authnote">記録はこのアカウントに保存されています。別の端末で同じメールアドレスからログインすると続きから使えます。</p>`;
 }
 
