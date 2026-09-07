@@ -175,6 +175,22 @@ async function pushUp() {
   Store.set("updated", Date.now());
 }
 
+/* 「入力をやり直す」時のサーバー側。
+   athlete_state は消さずに中身だけ空にする。paid をここに持っているため、
+   行ごと消すと他端末の課金状態まで失われる。 */
+async function resetServerState() {
+  if (!sb || !ME || !MY_PROFILE) return;
+  try {
+    await sb.from("athlete_state").upsert({
+      user_id: ME.id, answers: {}, result: {}, week: 1,
+      paid: Store.get("paid") === true,
+      updated_at: new Date().toISOString()
+    });
+    await sb.from("athlete_public").delete().eq("user_id", ME.id);
+    await sb.from("training_logs").delete().eq("user_id", ME.id);
+  } catch (e) {}
+}
+
 /* 診断や週締めのあとに呼ぶ。ログインしていなければ何もしない */
 async function syncIfSignedIn() {
   Store.set("updated", Date.now());

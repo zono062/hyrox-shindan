@@ -239,6 +239,9 @@ create policy pub_write on public.athlete_public for insert to authenticated
   with check (auth.uid() = user_id);
 create policy pub_update on public.athlete_public for update to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- 「入力をやり直す」で公開側の数値を消せるようにする
+create policy pub_delete on public.athlete_public for delete to authenticated
+  using (auth.uid() = user_id);
 
 -- 実施ログ：本人のみ
 create policy logs_own on public.training_logs for all to authenticated

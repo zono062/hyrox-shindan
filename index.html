@@ -1310,7 +1310,8 @@ function readPartnerFromURL(){
 function restartAll(){
   if(!confirm("入力と実施ログを消して、最初からやり直します。よろしいですか？")) return;
   stopCount();
-  ["answers","result","log","week"].forEach(k=>Store.del(k));   // paid は削除しない
+  ["answers","result","log","week","updated"].forEach(k=>Store.del(k));   // paid は削除しない
+  if(typeof resetServerState==="function") resetServerState();
   Object.assign(A,A0);
   R=null; step=0; WEEK=[]; LOG=[]; closed=false;
   $("rClose").innerHTML="";
