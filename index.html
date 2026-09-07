@@ -334,6 +334,10 @@ body{
 .ctalegal{font-size:10.5px;color:var(--mute);margin-top:14px;line-height:1.7}
 .ctalegal a{color:var(--ink)}
 .disc{font-size:10.5px;color:var(--mute);margin-top:26px;line-height:1.7}
+.acctbar{
+  margin:0 22px;padding:26px 0 4px;border-top:1px solid var(--rule);
+}
+.acctbar .eyebrow{display:block;margin-bottom:12px}
 .foot{
   border-top:1px solid var(--rule);margin:0 22px;padding:22px 0 34px;
   display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;
@@ -440,12 +444,13 @@ body{
     <button class="ghost" onclick="share()">結果を画像でシェアする</button>
     <p class="ctalegal">月額980円・自動更新／いつでも解約できます。お申し込み前に<a href="./legal/terms.html">利用規約</a>と<a href="./legal/tokushoho.html">特定商取引法に基づく表記</a>をご確認ください。</p>
     <p class="disc">予測タイムは身長・体重・年齢・現在の走力から算出した参考値です。トレーニングおよび栄養に関する内容は一般的な情報であり、個別の医学的・栄養指導ではありません。</p>
-    <div class="sec" style="margin-top:38px">
-      <h2>アカウント</h2>
-      <div id="acct"></div>
-    </div>
     <button class="redo" onclick="restartAll()">入力をやり直す</button>
   </div>
+</section>
+
+<section class="acctbar">
+  <div class="eyebrow">アカウント</div>
+  <div id="acct"></div>
 </section>
 
 <footer class="foot">
