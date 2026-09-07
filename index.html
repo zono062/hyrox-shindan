@@ -344,6 +344,7 @@ body.hastab .acctbar,body.hastab .foot{display:none}
   padding:16px 22px 12px;border-bottom:1px solid var(--rule);
 }
 .sotop b{font-family:"Barlow Condensed",sans-serif;font-size:22px;letter-spacing:.16em}
+.sotopsub{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mute)}
 .sopad{padding:0 22px}
 .soh{
   font-size:11px;font-family:"IBM Plex Mono",monospace;letter-spacing:.16em;
@@ -599,7 +600,7 @@ body.hastab .acctbar,body.hastab .foot{display:none}
 <section class="screen" id="s-social">
   <div class="sotop">
     <b>ROXX</b>
-    <button class="solink" onclick="closeSocial()">診断に戻る</button>
+    <span class="sotopsub" id="soTopSub"></span>
   </div>
   <div id="soView"></div>
 </section>
@@ -607,7 +608,7 @@ body.hastab .acctbar,body.hastab .foot{display:none}
 <nav class="tabbar">
   <button class="tabbtn on" data-tab="home" onclick="goTab('home')"><i>⌂</i><em>ホーム</em></button>
   <button class="tabbtn" data-tab="find" onclick="goTab('find')"><i>⌕</i><em>さがす</em></button>
-  <button class="tabbtn" data-tab="post" onclick="goTab('post')"><i>＋</i><em>投稿</em></button>
+  <button class="tabbtn" data-tab="program" onclick="goTab('program')"><i>◎</i><em>プログラム</em></button>
   <button class="tabbtn" data-tab="dm" onclick="goTab('dm')"><i>✉</i><em>DM</em></button>
   <button class="tabbtn" data-tab="me" onclick="goTab('me')"><i>◍</i><em>自分</em></button>
 </nav>

@@ -83,6 +83,7 @@ async function afterSignIn() {
   if (!MY_PROFILE) { paintAccount(); return }   // プロフィール未作成
   await syncState();
   paintAccount();
+  if (typeof enterShell === "function") enterShell();
   if (typeof track === "function") track("signed_in");
 }
 
@@ -119,6 +120,7 @@ async function createProfile() {
   await loadProfile();
   await syncState();
   paintAccount();
+  if (typeof enterShell === "function") enterShell();
   authMsg("");
 }
 

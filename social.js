@@ -1,8 +1,8 @@
 /* ============================================================
    ROXX / コミュニティ（Instagram型の構成）
 
-   下部タブ：ホーム / さがす / 投稿 / DM / 自分
-   ホーム上部にストーリー（24時間・円形）、下にフィード（残る投稿）。
+   下部タブ：ホーム / さがす / プログラム / DM / 自分
+   ログイン済みならタブがアプリの外枠になり、診断は「プログラム」タブの中身になる。
 
    * 権限判定はサーバーのRLSに任せる。ここでの絞り込みは表示の都合であって
      防壁ではない。フォロー外の投稿はそもそも返ってこない。
@@ -22,30 +22,48 @@ let OPEN_THREAD = null;
 let STORY_IX = 0;
 let STORY_TIMER = null;
 
-/* ---------- 開閉とタブ ---------- */
-function openSocial() {
-  if (!sb || !ME || !MY_PROFILE) { alert("先にアカウントを作成してください"); return }
-  show("s-social");
+/* ---------- シェル ----------
+   ログイン済みならアプリの外枠はタブになる。診断は「プログラム」タブの中身。
+   診断がまだの人はフィードが空なので、プログラムから開く。 */
+function enterShell() {
+  if (!sb || !ME || !MY_PROFILE) return;
   document.body.classList.add("hastab");
-  goTab("home");
-  if (typeof track === "function") track("social_open");
+  goTab(R ? "home" : "program");
 }
-function closeSocial() {
+function leaveShell() {
   document.body.classList.remove("hastab");
   stopStory();
-  show(R ? "s-res" : "s-intro");
+  show("s-intro");
 }
+/* 旧導線からの呼び出しを受ける */
+function openSocial() {
+  if (!sb || !ME || !MY_PROFILE) { alert("先にアカウントを作成してください"); return }
+  enterShell();
+  if (typeof track === "function") track("social_open");
+}
+function closeSocial() { goTab("program") }
 
 function goTab(t) {
   TAB = t;
   document.querySelectorAll(".tabbtn").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  stopStory();
+  window.scrollTo(0, 0);
+
+  if (t === "program") {          // 診断とトレーニング
+    show(R ? "s-res" : "s-intro");
+    if (typeof track === "function") track("tab_program");
+    return;
+  }
+  show("s-social");
   const v = elx("soView");
-  v.scrollTop = 0; window.scrollTo(0, 0);
-  if (t === "home")   { v.innerHTML = skeleton("読み込んでいます…"); loadHome() }
-  if (t === "find")   renderFind();
-  if (t === "post")   renderCompose();
-  if (t === "dm")     { v.innerHTML = skeleton("読み込んでいます…"); loadThreads() }
-  if (t === "me")     renderMe();
+  v.scrollTop = 0;
+  const sub = elx("soTopSub");
+  if (sub) sub.textContent = { home: "", find: "さがす", dm: "メッセージ", me: MY_PROFILE ? "@" + MY_PROFILE.handle : "" }[t] || "";
+  if (t === "home") { v.innerHTML = skeleton("読み込んでいます…"); loadHome() }
+  if (t === "find") renderFind();
+  if (t === "post") renderCompose();
+  if (t === "dm")   { v.innerHTML = skeleton("読み込んでいます…"); loadThreads() }
+  if (t === "me")   renderMe();
 }
 const skeleton = t => `<p class="somsg">${t}</p>`;
 
@@ -118,7 +136,7 @@ function renderHome() {
 
   elx("soView").innerHTML = `
     <div class="storystrip">
-      <button class="ring add" onclick="goTab('post')">
+      <button class="ring add" onclick="openCompose()">
         <span class="ringimg plus">＋</span><span class="ringname">投稿</span>
       </button>
       ${ring}
@@ -265,6 +283,11 @@ async function pairWith(userId) {
 }
 
 /* ---------- 投稿 ---------- */
+function openCompose() {
+  show("s-social");
+  document.querySelectorAll(".tabbtn").forEach(b => b.classList.remove("on"));
+  renderCompose();
+}
 function renderCompose() {
   elx("soView").innerHTML = `
     <div class="sopad">
@@ -432,9 +455,9 @@ function renderMe() {
         <span>@${escHtml(MY_PROFILE.handle)}</span>
       </div>
       <h3 class="soh" style="margin-top:28px">設定</h3>
-      <button class="ghost" onclick="closeSocial()">診断とトレーニングに戻る</button>
+      <button class="ghost" onclick="goTab('program')">診断とトレーニングを見る</button>
       <button class="ghost" style="margin-top:9px" onclick="openBlocked()">ブロックした人</button>
-      <button class="ghost" style="margin-top:9px" onclick="signOut();closeSocial()">ログアウト</button>
+      <button class="ghost" style="margin-top:9px" onclick="signOut();leaveShell()">ログアウト</button>
       <h3 class="soh" style="margin-top:28px">安全のために</h3>
       <p class="somsg">不快な投稿やメッセージは通報してください。内容を確認し、削除やアカウント停止を行います。緊急のご連絡は mizuyuu0602@gmail.com へ。</p>
       <p class="somsg"><a href="./legal/privacy.html">プライバシーポリシー</a>　<a href="./legal/terms.html">利用規約</a></p>
