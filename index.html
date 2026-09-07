@@ -334,14 +334,110 @@ body{
 .ctalegal{font-size:10.5px;color:var(--mute);margin-top:14px;line-height:1.7}
 .ctalegal a{color:var(--ink)}
 .disc{font-size:10.5px;color:var(--mute);margin-top:26px;line-height:1.7}
-/* social */
+/* ---------- social（Instagram型） ---------- */
+body.hastab #app{padding-bottom:64px}
+body.hastab .tabbar{display:grid}
+body.hastab .acctbar,body.hastab .foot{display:none}
+#s-social{padding:0 0 20px}
+.sotop{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 22px 12px;border-bottom:1px solid var(--rule);
+}
+.sotop b{font-family:"Barlow Condensed",sans-serif;font-size:22px;letter-spacing:.16em}
+.sopad{padding:0 22px}
+.soh{
+  font-size:11px;font-family:"IBM Plex Mono",monospace;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--mute);font-weight:400;
+  padding-bottom:9px;border-bottom:1px solid var(--ink);margin:20px 0 14px;
+}
+.somsg{font-size:12.5px;color:var(--mute);line-height:1.75;padding:14px 0}
+.somsg.err{color:var(--alert)}
+.somsg a{color:var(--ink)}
+
+/* 下部タブ */
+.tabbar{
+  display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;
+  max-width:460px;margin:0 auto;background:var(--paper);
+  border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(5,1fr);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tabbtn{
+  background:none;border:none;padding:9px 0 8px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--mute);
+}
+.tabbtn i{font-style:normal;font-size:19px;line-height:1}
+.tabbtn em{font-style:normal;font-size:9.5px;font-family:"Noto Sans JP",sans-serif}
+.tabbtn.on{color:var(--ink)}
+.tabbtn.on i{font-weight:700}
+
+/* ストーリーの輪 */
+.storystrip{
+  display:flex;gap:14px;overflow-x:auto;padding:16px 22px;
+  border-bottom:1px solid var(--rule);
+}
+.ring{background:none;border:none;padding:0;cursor:pointer;flex:0 0 auto;width:64px}
+.ringimg{
+  display:block;width:64px;height:64px;border-radius:50%;overflow:hidden;
+  border:2px solid var(--alert);padding:2px;background:var(--paper);
+}
+.ringimg img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.ringimg.plus{
+  border:1px dashed var(--rule);color:var(--mute);font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+}
+.ringname{
+  display:block;font-size:10px;color:var(--mute);margin-top:6px;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* フィード */
+.post{border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:6px}
+.posthd{display:flex;justify-content:space-between;align-items:center;padding:13px 22px}
+.posthd b{font-size:13.5px;display:block}
+.posthd span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--mute)}
+.postimg{width:100%;display:block}
+.postact{padding:11px 22px 4px}
+.likebtn{
+  background:none;border:none;cursor:pointer;font-size:19px;color:var(--mute);
+  display:flex;align-items:center;gap:7px;padding:0;
+}
+.likebtn.on{color:var(--alert)}
+.likebtn span{font-family:"Barlow Condensed",sans-serif;font-size:15px;color:var(--ink)}
+.postcap{font-size:13px;line-height:1.7;padding:4px 22px 0}
+.postcap b{font-weight:700;margin-right:6px}
+
+/* ストーリー全画面 */
+#storyView{display:none}
+#storyView.on{
+  display:block;position:fixed;inset:0;z-index:60;background:var(--ink);color:#fff;
+  overflow-y:auto;max-width:460px;margin:0 auto;
+}
+.stbars{display:flex;gap:4px;padding:12px 14px 0}
+.stbars i{flex:1;height:2px;background:#3A3A36;border-radius:2px}
+.stbars i.done,.stbars i.cur{background:#fff}
+.sthd{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+.sthd b{font-size:14px;display:block;color:#fff}
+.sthd span{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#8A8A85}
+.sthd button{background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+.stbody{position:relative}
+.stbody img{width:100%;display:block}
+.stna{width:100%;aspect-ratio:4/5;background:#1A1A18}
+.stnav{position:absolute;top:0;bottom:0;width:35%;background:none;border:none;cursor:pointer}
+.stnav.prev{left:0}
+.stnav.next{right:0}
+.stcap{font-size:13px;color:#C9C9C5;padding:12px 18px 0;line-height:1.7}
+.stacts{display:flex;gap:16px;flex-wrap:wrap;padding:14px 18px 30px}
+.stacts .solink{color:#8A8A85}
+#storyView .sopad .somsg{color:#8A8A85}
+#storyView .authinput{background:#1A1A18;border-color:#3A3A36;color:#fff}
+
+/* 一覧行 */
 .sorow{
   display:flex;justify-content:space-between;align-items:center;gap:10px 12px;
   border-bottom:1px solid var(--rule);padding:14px 0;flex-wrap:wrap;
 }
 .sorow b{font-size:14px;display:block}
 .sorow span{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mute)}
-/* 狭い画面で操作が右端に張り付くため、名前の下に落とす */
 .sorow>div:first-child{flex:1 1 100%;min-width:0}
 .soacts{display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex:1 1 100%}
 .sobtn{
@@ -353,33 +449,38 @@ body{
   text-decoration:underline;font-family:"Noto Sans JP",sans-serif;white-space:nowrap;
 }
 .sotag{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mute)}
-.storyrow{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
-.storycell{
-  border:none;background:none;padding:0;cursor:pointer;flex:0 0 92px;text-align:center;
+
+/* DM */
+.dmrow{
+  width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  background:none;border:none;border-bottom:1px solid var(--rule);
+  padding:14px 0;cursor:pointer;text-align:left;
 }
-.storycell img,.storyna{
-  width:92px;height:115px;object-fit:cover;display:block;
-  border:1px solid var(--rule);background:var(--field);
+.dmrow b{font-size:14px;display:block;color:var(--ink)}
+.dmrow span{font-size:12px;color:var(--mute);display:block;margin-top:3px}
+.dmrow em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--mute);white-space:nowrap}
+.reqn{
+  background:var(--alert);color:#fff;border-radius:9px;padding:1px 7px;
+  font-family:"Barlow Condensed",sans-serif;font-size:12px;
 }
-.storycell span{
-  display:block;font-size:10.5px;color:var(--mute);margin-top:6px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+.dmhd{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 22px;border-bottom:1px solid var(--rule);
 }
-#storyView{display:none;padding:0 22px 40px}
-#storyView.on{display:block;animation:fade .25s ease both}
-.storyhd{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:18px 0 12px;border-bottom:1px solid var(--rule);margin-bottom:14px;
+.dmhd b{font-size:14px}
+.dmreq{background:var(--field);padding:16px 22px}
+.dmreq p{font-size:12.5px;margin-bottom:10px}
+.dmbody{padding:16px 22px;display:flex;flex-direction:column;gap:8px;min-height:180px}
+.bub{
+  max-width:78%;padding:10px 13px;font-size:13.5px;line-height:1.6;
+  background:var(--field);align-self:flex-start;
 }
-.storyhd b{font-size:14px;display:block}
-.storyhd span{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mute)}
-.storyhd button{
-  background:none;border:none;font-size:12px;color:var(--mute);cursor:pointer;
-  text-decoration:underline;font-family:"Noto Sans JP",sans-serif;
-}
-.storybig{width:100%;display:block;border:1px solid var(--rule)}
-.storycap{font-size:12.5px;color:var(--mute);margin-top:10px}
-.storyacts{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.bub.me{background:var(--ink);color:#fff;align-self:flex-end}
+.dmform{display:flex;gap:8px;padding:0 22px 16px;align-items:flex-start}
+.dmform .authinput{margin-bottom:0}
+.mehd{padding:22px 0 0}
+.mehd b{font-size:22px;font-weight:900;display:block}
+.mehd span{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mute)}
 .acctbar{
   margin:0 22px;padding:26px 0 4px;border-top:1px solid var(--rule);
 }
@@ -496,31 +597,20 @@ body{
 
 <!-- SOCIAL -->
 <section class="screen" id="s-social">
-  <div class="qtop">
-    <div class="eyebrow">仲間とストーリー</div>
-    <button class="back" style="padding:0" onclick="closeSocial()">閉じる</button>
+  <div class="sotop">
+    <b>ROXX</b>
+    <button class="solink" onclick="closeSocial()">診断に戻る</button>
   </div>
-
-  <div class="sec">
-    <h2>ストーリー</h2>
-    <div id="soFeed"></div>
-    <button class="btn" id="soPost" style="margin-top:14px" onclick="postStory()">いまの結果を投稿する</button>
-    <p class="authnote">投稿は<b>フォロワーだけ</b>が見られ、<b>24時間で自動的に消えます。</b>画像には身長・体重・年齢は含まれません。</p>
-  </div>
-
-  <div class="sec">
-    <h2>仲間を探す</h2>
-    <input class="authinput" id="soFind" type="text" placeholder="ユーザーID（例：mizuyuu0602）">
-    <button class="btn" onclick="searchUser()">探す</button>
-    <div id="soFindOut"></div>
-  </div>
-
-  <div class="sec">
-    <h2>フォロー中</h2>
-    <div id="soList"></div>
-    <p class="authnote">「ペアで計算」を押すと、その相手とのダブルス予測タイムが出ます。</p>
-  </div>
+  <div id="soView"></div>
 </section>
+
+<nav class="tabbar">
+  <button class="tabbtn on" data-tab="home" onclick="goTab('home')"><i>⌂</i><em>ホーム</em></button>
+  <button class="tabbtn" data-tab="find" onclick="goTab('find')"><i>⌕</i><em>さがす</em></button>
+  <button class="tabbtn" data-tab="post" onclick="goTab('post')"><i>＋</i><em>投稿</em></button>
+  <button class="tabbtn" data-tab="dm" onclick="goTab('dm')"><i>✉</i><em>DM</em></button>
+  <button class="tabbtn" data-tab="me" onclick="goTab('me')"><i>◍</i><em>自分</em></button>
+</nav>
 
 <div id="storyView"></div>
 
