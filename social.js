@@ -62,7 +62,7 @@ function goTab(t) {
   v.scrollTop = 0;
   const sub = elx("soTopSub");
   if (sub) sub.textContent = { home: "", find: "さがす", dm: "メッセージ", me: MY_PROFILE ? "@" + MY_PROFILE.handle : "" }[t] || "";
-  if (t === "home") { v.innerHTML = skeleton("読み込んでいます…"); loadHome() }
+  if (t === "home") { v.innerHTML = skeleton("読み込んでいます…"); loadHome(); loadNotifs() }
   if (t === "find") renderFind();
   if (t === "post") renderCompose();
   if (t === "dm")   { v.innerHTML = skeleton("読み込んでいます…"); loadThreads() }
@@ -144,7 +144,7 @@ function renderHome() {
 
   const ring = mineFirst.map((g, i) => `
     <button class="ring" onclick="openStoryGroup(${i})">
-      <span class="ringimg">${g.items[0].url ? `<img src="${g.items[0].url}" alt="">` : ""}</span>
+      <span class="ringimg">${avatarImg(g.author, 56)}</span>
       <span class="ringname">${g.id === ME.id ? "自分" : escHtml(g.author.display_name)}</span>
     </button>`).join("");
 
@@ -177,9 +177,12 @@ function postCard(p, isReco) {
   return `
     <article class="post${isReco ? " reco" : ""}">
       <header class="posthd">
-        <div>
-          <b>${escHtml(p.author.display_name)}</b>
-          <span>${ago(p.created_at)}${sameRace ? " ・ 同じ大会" : ""}</span>
+        <div class="pauthor">
+          ${avatarImg(p.author, 32)}
+          <div>
+            <b>${escHtml(p.author.display_name)}</b>
+            <span>${ago(p.created_at)}${sameRace ? " ・ 同じ大会" : ""}</span>
+          </div>
         </div>
         ${isReco
           ? `<button class="sobtn sm" onclick="follow('${p.author_id}')">フォロー</button>`
@@ -269,7 +272,7 @@ async function loadFollowing() {
   const { data } = await sb.from("follows").select("followee_id").eq("follower_id", ME.id);
   const ids = (data || []).map(r => r.followee_id);
   if (!ids.length) { FOLLOWING = []; return }
-  const { data: profs } = await sb.from("profiles").select("id,handle,display_name,sex").in("id", ids);
+  const { data: profs } = await sb.from("profiles").select("id,handle,display_name,sex,avatar_path").in("id", ids);
   FOLLOWING = profs || [];
 }
 
@@ -278,7 +281,7 @@ async function searchUser() {
   const out = elx("soFindOut");
   if (!/^[a-z0-9_]{3,20}$/.test(q)) { out.innerHTML = `<p class="somsg err">ユーザーIDを入力してください</p>`; return }
   out.innerHTML = skeleton("探しています…");
-  const { data } = await sb.from("profiles").select("id,handle,display_name").eq("handle", q).maybeSingle();
+  const { data } = await sb.from("profiles").select("id,handle,display_name,avatar_path").eq("handle", q).maybeSingle();
   if (!data) { out.innerHTML = `<p class="somsg">@${escHtml(q)} は見つかりませんでした</p>`; return }
   if (data.id === ME.id) { out.innerHTML = `<p class="somsg">それはあなた自身です</p>`; return }
   const already = FOLLOWING.some(f => f.id === data.id);
@@ -339,12 +342,30 @@ function openCompose() {
   show("s-social");
   document.querySelectorAll(".tabbtn").forEach(b => b.classList.remove("on"));
   renderCompose();
+  paintComposePhoto();
+}
+
+/* 写真は既定の流れ。無い状態を「まだ選んでいない」として見せる */
+function paintComposePhoto() {
+  const box = elx("cpPhoto");
+  if (!box || !R) return;
+  box.innerHTML = SHOT
+    ? `<div class="cpshot"><img src="${SHOT.src}" alt=""></div>
+       <div class="cprow"><span>この写真を背景にします</span>
+         <button class="solink" onclick="pickPhoto();setTimeout(paintComposePhoto,600)">変える</button>
+         <button class="solink" onclick="clearPhoto();paintComposePhoto()">外す</button></div>`
+    : `<button class="cppick" onclick="pickPhoto();setTimeout(paintComposePhoto,600)">
+         <b>写真を選ぶ</b>
+         <em>自分の写真を背景にすると届きやすくなります。数字だけのカードは流されます。</em>
+       </button>
+       <div class="cprow"><span>選ばない場合は黒背景のカードになります</span></div>`;
 }
 function renderCompose() {
   elx("soView").innerHTML = `
     <div class="sopad">
       <h3 class="soh">投稿する</h3>
-      ${R ? `<p class="somsg">いまの結果カードがそのまま画像になります。写真を選ぶと背景に使えます。</p>
+      ${R ? `
+      <div class="cpphoto" id="cpPhoto"></div>
       <textarea class="authinput" id="cpCap" rows="3" maxlength="300" placeholder="ひとこと（任意）"></textarea>
 
       <label class="cpcheck">
@@ -445,6 +466,7 @@ async function loadThreads() {
 }
 
 function renderThreads() {
+  markAllRead(true);
   const open = THREADS.filter(t => t.accepted);
   const req = THREADS.filter(t => !t.accepted);
   const row = t => `
@@ -516,8 +538,14 @@ function renderMe() {
   elx("soView").innerHTML = `
     <div class="sopad">
       <div class="mehd">
-        <b>${escHtml(MY_PROFILE.display_name)}</b>
-        <span>@${escHtml(MY_PROFILE.handle)}</span>
+        <button class="meav" onclick="pickAvatar()">
+          ${avatarImg(MY_PROFILE, 76)}
+          <em>写真を変える</em>
+        </button>
+        <div>
+          <b>${escHtml(MY_PROFILE.display_name)}</b>
+          <span>@${escHtml(MY_PROFILE.handle)}</span>
+        </div>
       </div>
       <h3 class="soh" style="margin-top:28px">設定</h3>
       <button class="ghost" onclick="goTab('program')">診断とトレーニングを見る</button>
@@ -593,7 +621,7 @@ async function blockUser(id) {
 async function profilesByIds(ids) {
   const map = {};
   if (!ids || !ids.length) return map;
-  const { data } = await sb.from("profiles").select("id,handle,display_name").in("id", ids);
+  const { data } = await sb.from("profiles").select("id,handle,display_name,avatar_path").in("id", ids);
   (data || []).forEach(p => { map[p.id] = p });
   return map;
 }
