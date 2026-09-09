@@ -13,10 +13,13 @@
 const elx = id => document.getElementById(id);
 const STORY_BUCKET = "stories";
 
+const RECO_LIMIT = 12;      // レコメンドの最大件数
+
 let TAB = "home";
 let FOLLOWING = [];
 let STORIES = [];
-let POSTS = [];
+let POSTS = [];             // フォロー中の投稿
+let RECO = [];              // おすすめ（フォローしていない人の公開投稿）
 let THREADS = [];
 let OPEN_THREAD = null;
 let STORY_IX = 0;
@@ -67,39 +70,66 @@ function goTab(t) {
 }
 const skeleton = t => `<p class="somsg">${t}</p>`;
 
-/* ---------- ホーム ---------- */
+/* ---------- ホーム ----------
+   フォロー中の投稿と、フォローしていない人の公開投稿（おすすめ）を分けて読む。
+   おすすめは同じ大会を目標にしている人を優先する。ROXXは全員の目標レースを
+   知っているので、フォロー0でもフィードが空にならない。 */
+const POST_COLS = "id,author_id,image_path,caption,created_at,visibility,race";
+
 async function loadHome() {
   await loadFollowing();
   const now = new Date().toISOString();
+  const followIds = FOLLOWING.map(f => f.id);
+  const mine = [ME.id, ...followIds];
 
-  const [{ data: st }, { data: ps }] = await Promise.all([
+  const [{ data: st }, { data: ps }, { data: rc }] = await Promise.all([
     sb.from("stories").select("id,author_id,image_path,caption,created_at,expires_at")
       .gt("expires_at", now).order("created_at", { ascending: false }).limit(50),
-    sb.from("posts").select("id,author_id,image_path,caption,created_at")
-      .order("created_at", { ascending: false }).limit(30)
+    sb.from("posts").select(POST_COLS)
+      .in("author_id", mine)
+      .order("created_at", { ascending: false }).limit(30),
+    sb.from("posts").select(POST_COLS)
+      .eq("visibility", "public")
+      .not("author_id", "in", `(${mine.join(",")})`)
+      .order("created_at", { ascending: false }).limit(60)
   ]);
-  STORIES = st || []; POSTS = ps || [];
 
-  const ids = [...new Set([...STORIES, ...POSTS].map(x => x.author_id))];
-  const who = await profilesByIds(ids);
-  STORIES.forEach(s => s.author = who[s.author_id] || { display_name: "利用者" });
-  POSTS.forEach(p => p.author = who[p.author_id] || { display_name: "利用者" });
+  STORIES = st || [];
+  POSTS = ps || [];
+  RECO = rankReco(rc || []).slice(0, RECO_LIMIT);
 
-  await Promise.all([...STORIES, ...POSTS].map(async x => {
+  const all = [...STORIES, ...POSTS, ...RECO];
+  const who = await profilesByIds([...new Set(all.map(x => x.author_id))]);
+  all.forEach(x => { x.author = who[x.author_id] || { display_name: "利用者", handle: "" } });
+
+  await Promise.all(all.map(async x => {
     if (x.image_path) x.url = await signed(x.image_path);
   }));
 
-  // いいね
-  if (POSTS.length) {
-    const { data: likes } = await sb.from("post_likes").select("post_id,user_id")
-      .in("post_id", POSTS.map(p => p.id));
-    POSTS.forEach(p => {
-      const mine = (likes || []).filter(l => l.post_id === p.id);
-      p.likes = mine.length;
-      p.liked = mine.some(l => l.user_id === ME.id);
-    });
-  }
+  await attachLikes([...POSTS, ...RECO]);
   renderHome();
+}
+
+/* 同じ目標レースを先に。次に新しい順 */
+function rankReco(rows) {
+  const myRace = (typeof A === "object" && A) ? A.race : null;
+  return [...rows].sort((a, b) => {
+    const am = myRace && a.race === myRace ? 0 : 1;
+    const bm = myRace && b.race === myRace ? 0 : 1;
+    if (am !== bm) return am - bm;
+    return Date.parse(b.created_at) - Date.parse(a.created_at);
+  });
+}
+
+async function attachLikes(list) {
+  if (!list.length) return;
+  const { data: likes } = await sb.from("post_likes").select("post_id,user_id")
+    .in("post_id", list.map(p => p.id));
+  list.forEach(p => {
+    const rows = (likes || []).filter(l => l.post_id === p.id);
+    p.likes = rows.length;
+    p.liked = rows.some(l => l.user_id === ME.id);
+  });
 }
 
 function renderHome() {
@@ -118,21 +148,19 @@ function renderHome() {
       <span class="ringname">${g.id === ME.id ? "自分" : escHtml(g.author.display_name)}</span>
     </button>`).join("");
 
-  const feed = POSTS.length ? POSTS.map(p => `
-    <article class="post">
-      <header class="posthd">
-        <div><b>${escHtml(p.author.display_name)}</b><span>${ago(p.created_at)}</span></div>
-        <button class="solink" onclick="postMenu('${p.id}','${p.author_id}')">…</button>
-      </header>
-      ${p.url ? `<img class="postimg" src="${p.url}" alt="">` : ""}
-      <div class="postact">
-        <button class="likebtn ${p.liked ? "on" : ""}" onclick="toggleLike('${p.id}')">
-          ${p.liked ? "♥" : "♡"} <span>${p.likes || 0}</span>
-        </button>
-      </div>
-      ${p.caption ? `<p class="postcap"><b>${escHtml(p.author.display_name)}</b> ${escHtml(p.caption)}</p>` : ""}
-    </article>`).join("")
-    : `<p class="somsg">まだ投稿がありません。「さがす」で仲間を追加するか、＋から自分のトレーニングを投稿してください。</p>`;
+  const myRace = (typeof A === "object" && A && A.race && typeof RACES === "object")
+    ? (RACES[A.race] || {}).label : null;
+
+  const following = POSTS.length
+    ? POSTS.map(p => postCard(p, false)).join("")
+    : `<p class="somsg">フォロー中の人の投稿はまだありません。下の「おすすめ」から気になる人をフォローしてください。</p>`;
+
+  const reco = RECO.length ? `
+    <div class="recohd">
+      <b>おすすめ</b>
+      <span>${myRace ? myRace + "を目標にしている人から" : "フォローしていない人の公開投稿"}</span>
+    </div>
+    ${RECO.map(p => postCard(p, true)).join("")}` : "";
 
   elx("soView").innerHTML = `
     <div class="storystrip">
@@ -141,7 +169,31 @@ function renderHome() {
       </button>
       ${ring}
     </div>
-    <div class="feed">${feed}</div>`;
+    <div class="feed">${following}${reco}</div>`;
+}
+
+function postCard(p, isReco) {
+  const sameRace = isReco && typeof A === "object" && A && p.race && p.race === A.race;
+  return `
+    <article class="post${isReco ? " reco" : ""}">
+      <header class="posthd">
+        <div>
+          <b>${escHtml(p.author.display_name)}</b>
+          <span>${ago(p.created_at)}${sameRace ? " ・ 同じ大会" : ""}</span>
+        </div>
+        ${isReco
+          ? `<button class="sobtn sm" onclick="follow('${p.author_id}')">フォロー</button>`
+          : `<button class="solink" onclick="postMenu('${p.id}','${p.author_id}')">…</button>`}
+      </header>
+      ${p.url ? `<img class="postimg" src="${p.url}" alt="">` : ""}
+      <div class="postact">
+        <button class="likebtn ${p.liked ? "on" : ""}" onclick="toggleLike('${p.id}')">
+          ${p.liked ? "♥" : "♡"} <span>${p.likes || 0}</span>
+        </button>
+        ${isReco ? `<button class="solink" onclick="openReport('story','${p.id}','この投稿')">通報</button>` : ""}
+      </div>
+      ${p.caption ? `<p class="postcap"><b>${escHtml(p.author.display_name)}</b> ${escHtml(p.caption)}</p>` : ""}
+    </article>`;
 }
 
 /* ---------- ストーリー閲覧（全画面・自動送り） ---------- */
@@ -241,8 +293,8 @@ async function searchUser() {
 async function follow(id) {
   const { error } = await sb.from("follows").insert({ follower_id: ME.id, followee_id: id });
   if (error) { alert("フォローできませんでした：" + error.message); return }
-  if (typeof track === "function") track("follow");
-  renderFind();
+  if (typeof track === "function") track("follow", { from: TAB });
+  if (TAB === "home") loadHome(); else renderFind();
 }
 async function unfollow(id) {
   if (!confirm("フォローを外しますか。相手の投稿は見えなくなります。")) return;
@@ -294,9 +346,16 @@ function renderCompose() {
       <h3 class="soh">投稿する</h3>
       ${R ? `<p class="somsg">いまの結果カードがそのまま画像になります。写真を選ぶと背景に使えます。</p>
       <textarea class="authinput" id="cpCap" rows="3" maxlength="300" placeholder="ひとこと（任意）"></textarea>
-      <button class="btn" id="cpStory" onclick="publish('story')">ストーリーに出す（24時間で消える）</button>
-      <button class="ghost" style="margin-top:9px" id="cpPost" onclick="publish('post')">フィードに投稿する（残る）</button>
-      <p class="authnote">どちらも<b>フォロワーだけ</b>が見られます。画像に身長・体重・年齢は含まれません。</p>`
+
+      <label class="cpcheck">
+        <input type="checkbox" id="cpPublic" checked>
+        <span><b>おすすめにも出す</b><em>フォロワー以外にも表示され、同じ大会を目標にしている人のフィードに届きます。外すとフォロワーだけになります。</em></span>
+      </label>
+      <button class="btn" id="cpPost" onclick="publish('post')">フィードに投稿する（残る）</button>
+
+      <div class="cpsep">または</div>
+      <button class="ghost" id="cpStory" onclick="publish('story')">ストーリーに出す</button>
+      <p class="authnote">ストーリーは<b>フォロワーだけ</b>が見られ、<b>24時間で自動的に消えます。</b>おすすめには出ません。<br>どちらも画像に身長・体重・年齢は含まれません。</p>`
       : `<p class="somsg">先に診断を終えてください。結果が投稿の中身になります。</p>`}
     </div>`;
 }
@@ -316,9 +375,14 @@ async function publish(kind) {
 
     const caption = cap || `予測 ${hms(R.total)} ／ 必要 ${R.need}週`;
     const table = kind === "story" ? "stories" : "posts";
+    const pub = elx("cpPublic") ? elx("cpPublic").checked : true;
     const row = kind === "story"
       ? { id, author_id: ME.id, image_path: path, kind: "result", caption }
-      : { id, author_id: ME.id, image_path: path, kind: "training", caption };
+      : {
+          id, author_id: ME.id, image_path: path, kind: "training", caption,
+          visibility: pub ? "public" : "followers",
+          race: (typeof A === "object" && A && A.race) ? A.race : null
+        };
     const { error } = await sb.from(table).insert(row);
     if (error) throw error;
 
@@ -331,7 +395,8 @@ async function publish(kind) {
 }
 
 async function toggleLike(postId) {
-  const p = POSTS.find(x => x.id === postId); if (!p) return;
+  const p = POSTS.find(x => x.id === postId) || RECO.find(x => x.id === postId);
+  if (!p) return;
   if (p.liked) { await sb.from("post_likes").delete().eq("post_id", postId).eq("user_id", ME.id); p.likes--; p.liked = false }
   else { await sb.from("post_likes").insert({ post_id: postId, user_id: ME.id }); p.likes++; p.liked = true }
   renderHome();
