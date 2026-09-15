@@ -1268,10 +1268,9 @@ function track(name,params){
 /* 商品：HYROX完走プログラム / 月額 ¥980 / サブスクリプション
    決済後のリダイレクト先：https://zono062.github.io/hyrox-shindan/?paid=1
 
-   ⚠ 現在はテスト（サンドボックス）のリンク。実際の入金は発生しない。
-   Stripeのアカウント審査が通ったら、本番モードで同じ商品のリンクを作り、
-   この1行を buy.stripe.com/xxxx（test_ が付かないURL）に差し替える。 */
-const PAYMENT_LINK = "https://buy.stripe.com/test_7sY7sL4pE32t5pA12geEo00";
+   本番モードのリンク（2026-09-15 審査通過後に差し替え）。実際に入金される。
+   Managed Payments はオフ（取引あたり3.5%の上乗せを避けるため）。 */
+const PAYMENT_LINK = "https://buy.stripe.com/7sY7sL4pE32t5pA12geEo00";
 
 /* 決済からの復帰：?paid=1 を検出してフラグを立て、クエリを消す */
 (function(){
