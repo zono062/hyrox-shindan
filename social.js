@@ -31,6 +31,7 @@ let STORY_TIMER = null;
 function enterShell() {
   if (!sb || !ME || !MY_PROFILE) return;
   document.body.classList.add("hastab");
+  if (typeof routeFromHash === "function" && routeFromHash()) return;
   goTab(R ? "home" : "program");
 }
 function leaveShell() {
@@ -547,6 +548,8 @@ function renderMe() {
           <span>@${escHtml(MY_PROFILE.handle)}</span>
         </div>
       </div>
+      <h3 class="soh" style="margin-top:28px">通知</h3>
+      <div id="pushState"></div>
       <h3 class="soh" style="margin-top:28px">設定</h3>
       <button class="ghost" onclick="goTab('program')">診断とトレーニングを見る</button>
       <button class="ghost" style="margin-top:9px" onclick="openBlocked()">ブロックした人</button>
@@ -555,6 +558,7 @@ function renderMe() {
       <p class="somsg">不快な投稿やメッセージは通報してください。内容を確認し、削除やアカウント停止を行います。緊急のご連絡は mizuyuu0602@gmail.com へ。</p>
       <p class="somsg"><a href="./legal/privacy.html">プライバシーポリシー</a>　<a href="./legal/terms.html">利用規約</a></p>
     </div>`;
+  if (typeof paintPushState === "function") paintPushState();
 }
 
 async function openBlocked() {
