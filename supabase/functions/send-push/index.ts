@@ -18,9 +18,20 @@ const TEXT: Record<string, string> = {
   dm: "からメッセージが届きました",
 };
 
-const privateKey = Deno.env.get("VAPID_PRIVATE_KEY");
-if (!privateKey) console.error("VAPID_PRIVATE_KEY is not set");
-else webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, privateKey);
+// Secretsに貼る際に末尾の改行が混ざりやすいので取り除く。
+// 鍵が不正でも起動時に落とさず、理由を返せるようにする（落ちると原因がログにしか残らない）。
+const privateKey = (Deno.env.get("VAPID_PRIVATE_KEY") ?? "").trim();
+let vapidError: string | null = null;
+if (!privateKey) {
+  vapidError = "VAPID_PRIVATE_KEY is not set";
+} else {
+  try {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, privateKey);
+  } catch (e) {
+    vapidError = `invalid VAPID key: ${(e as Error).message}`;
+  }
+}
+if (vapidError) console.error(vapidError);
 
 const sb = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -32,7 +43,7 @@ const json = (body: unknown, status = 200) =>
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
-  if (!privateKey) return json({ ok: false, error: "push is not configured" }, 503);
+  if (vapidError) return json({ ok: false, error: "push is not configured", reason: vapidError }, 503);
 
   let body: { record?: { id?: unknown } };
   try { body = await req.json(); } catch { return json({ ok: false, error: "invalid json" }, 400); }
